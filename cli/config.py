@@ -32,6 +32,12 @@ class Config:
 
         self.__set(self.config, paths, value)
 
+    def flatten(self) -> dict[str, Any]:
+        dest = {}
+        if self.config:
+            self.__flatten(self.config, "", dest)
+        return dest
+
     @classmethod
     def __get(cls, config: dict[str, Any], paths: list[str]):
         if len(paths) == 0:
@@ -54,3 +60,11 @@ class Config:
         if key not in config:
             config[key] = {}
         cls.__set(config[key], rest, value)
+
+    @classmethod
+    def __flatten(cls, config: dict[str, Any], prefix: str, dest: dict[str, Any]):
+        for key, value in config.items():
+            if isinstance(value, dict):
+                cls.__flatten(value, f"{prefix}{key}.", dest)
+            else:
+                dest[f"{prefix}{key}"] = value

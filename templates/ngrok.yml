@@ -1,0 +1,6 @@
+version: 2
+authtoken: $ngrok.auth_token
+tunnels:
+  web:
+    proto: http
+    addr: 040689

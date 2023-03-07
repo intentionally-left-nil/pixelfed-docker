@@ -9,6 +9,9 @@ def configure():
     secrets.load()
     NgrokConfig.configure(secrets)
     secrets.save()
+    NgrokConfig.update_files(
+        secrets=secrets, template_dir=Path("templates"), secret_dir=Path("secrets")
+    )
 
 
 def secrets_path():
