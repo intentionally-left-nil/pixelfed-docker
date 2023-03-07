@@ -2,8 +2,23 @@ services:
   ngrok:
     image: ngrok/ngrok:3-alpine
     profiles:
-      - testing
+      - dev
     environment:
       - NGROK_CONFIG=/etc/ngrok.yml
     volumes:
       - ./secrets/ngrok/ngrok.yml:/etc/ngrok.yml:ro
+    ports:
+      - '4040:4040'
+    networks:
+      - www
+
+  nginx-dev:
+    image: nginx:mainline-alpine
+    profiles:
+      - dev
+    volumes:
+      - ./config/nginx_dev/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - www
+networks:
+  www:

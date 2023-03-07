@@ -1,6 +1,8 @@
 version: 2
 authtoken: $ngrok.auth_token
+web_addr: 0.0.0.0:4040
+log_level: debug
 tunnels:
   web:
     proto: http
-    addr: 040689
+    addr: nginx-dev:80
