@@ -20,5 +20,17 @@ services:
       - ./config/nginx_dev/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - www
+    ports:
+      - '8000:8000'
+  redirect-dev:
+    build:
+      context: './config/redirect_dev'
+    profiles:
+      - dev
+    volumes:
+      - ./config/redirect_dev/app.py:/app.py
+
+    networks:
+      - www
 networks:
   www:
