@@ -10,8 +10,11 @@ class Config:
         self.config: Optional[dict[str, Any]] = None
 
     def load(self):
-        with open(self.path, "rb") as f:
-            self.config = tomli.load(f)
+        try:
+            with open(self.path, "rb") as f:
+                self.config = tomli.load(f)
+        except FileNotFoundError:
+            self.config = {}
 
     def save(self):
         if self.config:
