@@ -29,8 +29,18 @@ services:
       - dev
     volumes:
       - ./config/redirect_dev/app.py:/app.py
-
     networks:
       - www
+
+  acme:
+    build:
+      context: './config/acme'
+      args:
+        acme_email: $acme_email
+    profiles:
+      - setup
+    volumes:
+      - ./secrets/acme/account.conf:/root/account.conf
+
 networks:
   www:

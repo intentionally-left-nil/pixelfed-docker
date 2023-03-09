@@ -8,5 +8,5 @@ class ServiceConfig:
         pass
 
     @classmethod
-    def update_files(cls, secrets: Config, template_dir: Path):
+    def update_files(cls, secrets: Config, template_dir: Path, secret_dir: Path):
         pass
