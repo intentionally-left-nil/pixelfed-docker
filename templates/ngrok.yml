@@ -1,5 +1,5 @@
 version: 2
-authtoken: $ngrok.auth_token
+authtoken: $px.secrets.ngrok.auth_token
 web_addr: 0.0.0.0:4040
 log_level: debug
 tunnels:

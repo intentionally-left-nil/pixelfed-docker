@@ -2,6 +2,7 @@ from pathlib import Path
 
 from .service_config import ServiceConfig
 from .config import Config
+from .dirs import Dirs
 import os
 import subprocess
 import re
@@ -9,7 +10,7 @@ import re
 
 class AcmeConfig(ServiceConfig):
     @classmethod
-    def configure(cls, secrets: Config):
+    def configure(cls, *, config: Config, secrets: Config):
         if not secrets.get(["acme", "email"]):
             print(
                 "Lets Encrypt (via acme.sh) is used to set up a free SSL certificate for your domain"
@@ -22,9 +23,9 @@ class AcmeConfig(ServiceConfig):
             )
 
     @classmethod
-    def update_files(cls, *, secrets: Config, template_dir: Path, secret_dir: Path):
-        (secret_dir / "acme").mkdir(exist_ok=True)
-        with open(secret_dir / "acme" / "account.conf", "a", encoding="utf-8"):
+    def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
+        (dirs.secrets / "acme").mkdir(exist_ok=True)
+        with open(dirs.secrets / "acme" / "account.conf", "a", encoding="utf-8"):
             pass
 
         if not secrets.get(["acme", "upgrade_hash"]):
@@ -55,7 +56,7 @@ class AcmeConfig(ServiceConfig):
                 raise RuntimeError("Could not find UPGRADE_HASH in acme.sh --info")
             secrets.set(["acme", "upgrade_hash"], match.group(1))
 
-        with open(secret_dir / "acme" / "account.conf", "w", encoding="utf-8") as f:
+        with open(dirs.secrets / "acme" / "account.conf", "w", encoding="utf-8") as f:
             f.write(
                 "\n".join(
                     [

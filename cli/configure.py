@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from .dirs import Dirs
 from .config import Config
 from .service_config import ServiceConfig
 from .ngrok_config import NgrokConfig
@@ -9,16 +9,16 @@ from typing import Type
 
 
 def configure():
-    secrets = Config(Path("secrets", "config.toml"))
+    dirs = Dirs(Path("."))
+    config = Config(dirs.config / "config.toml")
+    secrets = Config(dirs.secrets / "config.toml")
+    config.load()
     secrets.load()
+
     configs: list[Type[ServiceConfig]] = [NgrokConfig, AcmeConfig]
-    [config.configure(secrets) for config in configs]
-    [
-        config.update_files(
-            secrets=secrets, template_dir=Path("templates"), secret_dir=Path("secrets")
-        )
-        for config in configs
-    ]
+    [c.configure(config=config, secrets=secrets) for c in configs]
+    [c.update_files(config=config, secrets=secrets, dirs=dirs) for c in configs]
+    config.save()
     secrets.save()
 
 
