@@ -51,6 +51,7 @@ services:
       - setup
     volumes:
       - ./secrets/acme/account.conf:/root/account.conf
+      - ./secrets/acme/ca:/root/.acme.sh/ca
 
 networks:
   www:

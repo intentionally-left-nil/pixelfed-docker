@@ -24,7 +24,7 @@ class AcmeConfig(ServiceConfig):
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
-        (dirs.secrets / "acme").mkdir(exist_ok=True)
+        (dirs.secrets / "acme" / "ca").mkdir(exist_ok=True, parents=True)
         with open(dirs.secrets / "acme" / "account.conf", "a", encoding="utf-8"):
             pass
 
@@ -79,6 +79,8 @@ class AcmeConfig(ServiceConfig):
                     "acme",
                     "--accountconf",
                     "/root/account.conf",
+                    "--server",
+                    "letsencrypt",
                     "--register-account",
                 ],
                 capture_output=True,
