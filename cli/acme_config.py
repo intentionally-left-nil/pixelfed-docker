@@ -3,6 +3,7 @@ from pathlib import Path
 from .service_config import ServiceConfig
 from .config import Config
 from .dirs import Dirs
+from .template import fill_template
 import os
 import subprocess
 import re
@@ -24,7 +25,16 @@ class AcmeConfig(ServiceConfig):
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
-        (dirs.secrets / "acme" / "ca").mkdir(exist_ok=True, parents=True)
+        (dirs.secrets / "acme").mkdir(exist_ok=True)
+        create_certs_dest = dirs.config / "create_certs" / "create_certs.sh"
+        fill_template(
+            template=dirs.templates / "create_certs.sh",
+            dest=create_certs_dest,
+            config=config,
+            secrets=secrets,
+        )
+        create_certs_dest.chmod(755)
+
         with open(dirs.secrets / "acme" / "account.conf", "a", encoding="utf-8"):
             pass
 

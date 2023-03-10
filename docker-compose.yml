@@ -9,6 +9,9 @@ services:
       - www
     ports:
       - '80:80'
+    depends_on:
+      create_certs:
+        condition: service_completed_successfully
   ngrok:
     image: ngrok/ngrok:3-alpine
     profiles:
@@ -51,6 +54,16 @@ services:
       - setup
     volumes:
       - ./secrets/acme/account.conf:/root/account.conf
+      - acme:/root/.acme.sh
+
+  create_certs:
+    build:
+      context: './config/create_certs'
+    profiles:
+      - prod
+    volumes:
+      - ./secrets/acme/account.conf:/root/account.conf:ro
+      - ./config/create_certs/create_certs.sh:/root/create_certs.sh:ro
       - acme:/root/.acme.sh
 
 networks:
