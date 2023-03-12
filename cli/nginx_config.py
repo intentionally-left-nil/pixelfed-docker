@@ -39,3 +39,10 @@ class NginxConfig(ServiceConfig):
             config=config,
             secrets=secrets,
         )
+
+        fill_template(
+            template=dirs.templates / "nginx_ssl.conf",
+            dest=dirs.secrets / "nginx" / "ssl.conf",
+            config=config,
+            secrets=secrets,
+        )
