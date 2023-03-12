@@ -66,6 +66,7 @@ services:
       - prod
     volumes:
       - ./secrets/acme/account.conf:/root/account.conf:ro
+      - ./secrets/acme/backup.tar:/root/backup.tar:ro
       - ./config/create_certs/create_certs.sh:/root/create_certs.sh:ro
       - acme:/root/.acme.sh
 

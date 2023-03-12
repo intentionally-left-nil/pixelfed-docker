@@ -5,6 +5,12 @@ set -x
 domain=${px.domain.web}
 domain_alias=${px.domain.web_alias}
 cert_dir="/root/.acme.sh/certs/$domain"
+
+if [ ! -f "$cert_dir/cert.pem" ]; then
+# First, try to untar the data from the backup file
+  tar x -v -f backup.tar -C /root || exit 1
+fi
+
 mkdir -p "$cert_dir" || exit 1
 
 if [ ! -f /root/.acme.sh/dhparams.pem ]; then

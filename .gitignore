@@ -162,3 +162,7 @@ cython_debug/
 # App specific gitignore
 /secrets
 /venv
+
+# Generated template files to be ignored by default
+/config/create_certs/create_certs.sh
+config/config.toml

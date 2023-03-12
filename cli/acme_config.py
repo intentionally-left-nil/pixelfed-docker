@@ -33,12 +33,15 @@ class AcmeConfig(ServiceConfig):
             config=config,
             secrets=secrets,
         )
-        create_certs_dest.chmod(755)
+        create_certs_dest.chmod(0o755)
+
+        made_changes = False
 
         with open(dirs.secrets / "acme" / "account.conf", "a", encoding="utf-8"):
             pass
 
         if not secrets.get(["acme", "upgrade_hash"]):
+            made_changes = True
             child_environ = os.environ.copy()
             child_environ["acme_email"] = secrets.get(["acme", "email"]) or ""
             result = subprocess.run(
@@ -78,6 +81,7 @@ class AcmeConfig(ServiceConfig):
             )
 
         if not secrets.get(["acme", "account_thumbprint"]):
+            made_changes = True
             result = subprocess.run(
                 [
                     "sudo",
@@ -107,3 +111,29 @@ class AcmeConfig(ServiceConfig):
                     "Could not find ACCOUNT_THUMBPRINT in acme.sh --register-account"
                 )
             secrets.set(["acme", "account_thumbprint"], match.group(1))
+
+        if made_changes or not (dirs.secrets / "acme" / "backup.tar").exists():
+            backup = subprocess.run(
+                [
+                    "sudo",
+                    "docker-compose",
+                    "--profile",
+                    "setup",
+                    "run",
+                    "--rm",
+                    "--entrypoint",
+                    "/bin/tar",
+                    "acme",
+                    "c",
+                    "-C",
+                    "/root",
+                    "-f",
+                    "-",
+                    ".acme.sh",
+                ],
+                capture_output=True,
+                check=True,
+                timeout=30,
+            )
+            with open(dirs.secrets / "acme" / "backup.tar", "wb") as f:
+                f.write(backup.stdout)
