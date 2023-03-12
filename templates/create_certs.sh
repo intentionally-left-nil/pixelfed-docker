@@ -19,5 +19,9 @@ fi
 
 if [ ! -f "$cert_dir/cert.pem" ]; then
   /root/.acme.sh/acme.sh --accountconf /root/account.conf --server letsencrypt --issue -d "$domain" -d "$domain_alias" --stateless || exit 1
-  /root/.acme.sh/acme.sh --accountconf /root/account.conf --install-cert -d "$domain" --cert-file "$cert_dir/cert.pem"  --key-file "$cert_dir/key.pem"  --fullchain-file "$cert_dir/fullchain.pem" || exit 1
+  /root/.acme.sh/acme.sh --accountconf /root/account.conf --install-cert -d "$domain" \
+  --cert-file "$cert_dir/cert.pem" \
+  --key-file "$cert_dir/key.pem" \
+  --fullchain-file "$cert_dir/fullchain.pem" \
+  --reloadcmd "nginx -s reload || true" || exit 1
 fi
