@@ -3,7 +3,6 @@ from .dirs import Dirs
 from .config import Config
 from .service_config import ServiceConfig
 from .ngrok_config import NgrokConfig
-from .acme_config import AcmeConfig
 from .nginx_config import NginxConfig
 
 from typing import Type
@@ -16,7 +15,7 @@ def configure():
     config.load()
     secrets.load()
 
-    configs: list[Type[ServiceConfig]] = [NgrokConfig, AcmeConfig, NginxConfig]
+    configs: list[Type[ServiceConfig]] = [NgrokConfig, NginxConfig]
     [c.configure(config=config, secrets=secrets) for c in configs]
     [c.update_files(config=config, secrets=secrets, dirs=dirs) for c in configs]
     config.save()

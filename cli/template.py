@@ -13,6 +13,6 @@ def fill_template(*, template: Path, dest: Path, config: Config, secrets: Config
         for key, value in secrets.flatten().items():
             output = output.replace(f"${{px.secrets.{key}}}", value)
 
-    dest.parent.mkdir(exist_ok=True)
+    dest.parent.mkdir(exist_ok=True, parents=True)
     with open(dest, "w", encoding="utf-8") as f:
         f.write(output)
