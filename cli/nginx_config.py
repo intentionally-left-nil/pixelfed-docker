@@ -55,20 +55,20 @@ class NginxConfig(ServiceConfig):
 
         fill_template(
             template=dirs.templates / "nginx.conf",
-            dest=dirs.secrets / "nginx" / "default.conf",
+            dest=dirs.config / "nginx" / "default.conf",
             config=config,
             secrets=secrets,
         )
 
         fill_template(
             template=dirs.templates / "nginx_ssl.conf",
-            dest=dirs.secrets / "nginx" / "ssl.conf",
+            dest=dirs.config / "nginx" / "ssl.conf",
             config=config,
             secrets=secrets,
         )
 
         made_changes = False
-        if not secrets.get(["acme", "account_thumbprint"]):
+        if not config.get(["acme", "account_thumbprint"]):
             made_changes = True
             acme_email = secrets.get(["acme", "email"]) or ""
             # Create the initial_acme_config.tar before running the container
@@ -122,12 +122,12 @@ class NginxConfig(ServiceConfig):
                 raise RuntimeError(
                     "Could not find ACCOUNT_THUMBPRINT in acme.sh --register-account"
                 )
-            secrets.set(["acme", "account_thumbprint"], match.group(1))
+            config.set(["acme", "account_thumbprint"], match.group(1))
 
             # Need to generate the template again, with the new certificate
             fill_template(
                 template=dirs.templates / "nginx.conf",
-                dest=dirs.secrets / "nginx" / "default.conf",
+                dest=dirs.config / "nginx" / "default.conf",
                 config=config,
                 secrets=secrets,
             )

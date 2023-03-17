@@ -164,5 +164,7 @@ cython_debug/
 /venv
 
 # Generated template files to be ignored by default
-/config/create_certs/create_certs.sh
 config/config.toml
+config/nginx/default.conf
+config/nginx/ssl.conf
+
