@@ -32,6 +32,14 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+  db_backup:
+    build:
+      context: './config/db_backup'
+    profiles:
+      - prod
+    env_file: ./secrets/db_backup/.env
+    networks:
+      - db
   ngrok:
     image: ngrok/ngrok:3-alpine
     profiles:
