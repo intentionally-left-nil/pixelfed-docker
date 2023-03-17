@@ -15,6 +15,23 @@ services:
     ports:
       - '80:80'
       - '443:443'
+
+  db:
+    image: postgres:alpine
+    profiles:
+      - dev
+      - prod
+    env_file: ./secrets/db/.env
+    volumes:
+      - db:/var/lib/postgresql/data/
+    networks:
+      - db
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
   ngrok:
     image: ngrok/ngrok:3-alpine
     profiles:
@@ -50,6 +67,8 @@ services:
 
 networks:
   www:
+  db:
 
 volumes:
   acme:
+  db:
