@@ -32,6 +32,17 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+
+  pixelfed:
+    image: pixelfed
+    build:
+      context: './pixelfed'
+      dockerfile: '../config/pixelfed/Dockerfile'
+    profiles:
+      - dev
+      - prod
+    entrypoint: ['/bin/sh']
+    command: ['-c', '']
   db_backup:
     build:
       context: './config/db_backup'

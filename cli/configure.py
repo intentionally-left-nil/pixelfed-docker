@@ -5,6 +5,7 @@ from .service_config import ServiceConfig
 from .ngrok_config import NgrokConfig
 from .nginx_config import NginxConfig
 from .database_config import DatabaseConfig
+from .pixelfed_config import PixelfedConfig
 
 from typing import Type
 
@@ -16,7 +17,12 @@ def configure():
     config.load()
     secrets.load()
 
-    configs: list[Type[ServiceConfig]] = [DatabaseConfig, NgrokConfig, NginxConfig]
+    configs: list[Type[ServiceConfig]] = [
+        DatabaseConfig,
+        NgrokConfig,
+        NginxConfig,
+        PixelfedConfig,
+    ]
     [c.configure(config=config, secrets=secrets) for c in configs]
     [c.update_files(config=config, secrets=secrets, dirs=dirs) for c in configs]
     config.save()
