@@ -12,6 +12,10 @@ class PixelfedConfig(ServiceConfig):
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
         if not secrets.get(["pixelfed", "app_key"]):
+            subprocess.run(
+                ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
+                check=True,
+            )
             result = subprocess.run(
                 [
                     "sudo",

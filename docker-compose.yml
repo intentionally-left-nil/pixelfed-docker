@@ -30,8 +30,12 @@ services:
       db:
       cache:
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate_db_dev:
+        condition: service_completed_successfully
   db:
     image: postgres:alpine
     profiles:
@@ -45,11 +49,28 @@ services:
       - db
     shm_size: 256m
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready', '-U', 'postgres']
-      interval: 30s
+      test: ['CMD', 'pg_isready', '-q', '-d', 'postgres', '-U', 'postgres']
+      interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 5s
+      start_period: 10s
+
+  migrate_db_dev:
+    image: pixelfed
+    profiles:
+      - dev
+    env_file: ./secrets/pixelfed/dev.env
+    volumes:
+      - './secrets/pixelfed/dev.env:/var/www/.env'
+    networks:
+      - db
+      - cache
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ['php', 'artisan', 'migrate']
 
   redis:
     image: redis:alpine
@@ -60,10 +81,10 @@ services:
       - cache
     healthcheck:
       test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 5
-      start_period: 5s
+      start_period: 10s
 
   pixelfed:
     image: pixelfed
