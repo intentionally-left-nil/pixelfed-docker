@@ -12,9 +12,22 @@ services:
       - acme:/root/.acme.sh
     networks:
       - www
+      - app
     ports:
       - '80:80'
       - '443:443'
+    depends_on:
+      - app
+  app:
+    image: pixelfed
+    profiles:
+      - dev
+      - prod
+    networks:
+      - app
+      - db
+    depends_on:
+      - db
 
   db:
     image: postgres:alpine
@@ -39,8 +52,7 @@ services:
       context: './pixelfed'
       dockerfile: '../config/pixelfed/Dockerfile'
     profiles:
-      - dev
-      - prod
+      - setup
     entrypoint: ['/bin/sh']
     command: ['-c', '']
   db_backup:
@@ -66,12 +78,14 @@ services:
 
   nginx-dev:
     image: nginx:mainline-alpine
+    restart: 'unless-stopped'
     profiles:
       - dev
     volumes:
       - ./config/nginx_dev/default.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - www
+      - app
     ports:
       - '8000:8000'
   redirect-dev:
@@ -87,6 +101,7 @@ services:
 networks:
   www:
   db:
+  app:
 
 volumes:
   acme:

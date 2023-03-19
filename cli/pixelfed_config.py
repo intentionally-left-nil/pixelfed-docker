@@ -11,7 +11,7 @@ class PixelfedConfig(ServiceConfig):
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
-        source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.fpm"
+        source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.apache"
         with open(source, mode="r", encoding="utf-8") as f:
             dockerfile = f.read()
             enable_pg = re.compile(r"^\s*#(.*(?:libpq-dev|pdo_pgsql).*)$", re.MULTILINE)
