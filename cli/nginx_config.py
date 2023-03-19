@@ -2,12 +2,12 @@ from pathlib import Path
 from urllib.parse import urlparse
 import re
 import subprocess
-import sys
 
 from .service_config import ServiceConfig
 from .config import Config
 from .dirs import Dirs
 from .template import fill_template
+from .util import check_result
 
 
 class NginxConfig(ServiceConfig):
@@ -160,10 +160,3 @@ class NginxConfig(ServiceConfig):
 
             with open(dirs.secrets / "nginx" / "initial_acme_config.tar", "wb") as f:
                 f.write(result.stdout)
-
-
-def check_result(result):
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr, file=sys.stderr)
-        result.check_returncode()

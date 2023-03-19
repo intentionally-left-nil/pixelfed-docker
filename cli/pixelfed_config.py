@@ -1,13 +1,39 @@
 import re
+import subprocess
 from .service_config import ServiceConfig
 from .config import Config
 from .dirs import Dirs
+
+from .template import fill_template
+from .util import check_result
 
 
 class PixelfedConfig(ServiceConfig):
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
-        pass
+        if not secrets.get(["pixelfed", "app_key"]):
+            result = subprocess.run(
+                [
+                    "sudo",
+                    "docker-compose",
+                    "--profile",
+                    "dev",
+                    "run",
+                    "--rm",
+                    "--no-deps",
+                    "app_dev",
+                    "php",
+                    "artisan",
+                    "key:generate",
+                    "--show",
+                    "--no-ansi",
+                ],
+                capture_output=True,
+                timeout=10,
+            )
+            check_result(result)
+            app_key = result.stdout.decode("utf-8").strip()
+            secrets.set(["pixelfed", "app_key"], app_key)
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
@@ -23,3 +49,10 @@ class PixelfedConfig(ServiceConfig):
 
             with open(dest, "w", encoding="utf-8") as f:
                 f.write(dockerfile)
+
+        fill_template(
+            template=dirs.templates / "pixelfed_dev.env",
+            dest=dirs.secrets / "pixelfed" / "dev.env",
+            config=config,
+            secrets=secrets,
+        )

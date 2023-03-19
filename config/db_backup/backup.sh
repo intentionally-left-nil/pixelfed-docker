@@ -13,7 +13,7 @@ set +x
 
 
   now=$(date +%s) || exit 1
-  pg_dump -d "postgres://postgres:$POSTGRES_PASSWORD@db:5432/postgres" | aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp - "s3://$AWS_BUCKET/$now" || exit 1
+  pg_dump -d "postgres://postgres:$POSTGRES_PASSWORD@db:5432/pixelfed" | aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp - "s3://$AWS_BUCKET/$now" || exit 1
 
   files=$(aws --endpoint-url "$AWS_ENDPOINT_URL" s3 ls "s3://$AWS_BUCKET" | awk '{print $4}' | sort -nr)
   i=1;

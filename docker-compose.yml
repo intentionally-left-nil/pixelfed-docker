@@ -16,19 +16,22 @@ services:
     ports:
       - '80:80'
       - '443:443'
-    depends_on:
-      - app
-  app:
+  app_dev:
     image: pixelfed
     profiles:
       - dev
-      - prod
+    env_file: ./secrets/pixelfed/dev.env
+    volumes:
+      - './secrets/pixelfed/dev.env:/var/www/.env'
     networks:
-      - app
-      - db
+      app:
+        aliases:
+          - app
+      db:
+      cache:
     depends_on:
       - db
-
+      - redis
   db:
     image: postgres:alpine
     profiles:
@@ -37,10 +40,26 @@ services:
     env_file: ./secrets/db/.env
     volumes:
       - db:/var/lib/postgresql/data/
+      - ./config/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - db
+    shm_size: 256m
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready']
+      test: ['CMD-SHELL', 'pg_isready', '-U', 'postgres']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+    networks:
+      - cache
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
       interval: 30s
       timeout: 10s
       retries: 5
@@ -101,8 +120,10 @@ services:
 networks:
   www:
   db:
+  cache:
   app:
 
 volumes:
   acme:
   db:
+  redis:
