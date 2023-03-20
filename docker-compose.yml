@@ -34,11 +34,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      migrate_db_dev:
-        condition: service_completed_successfully
   db:
     image: postgres:alpine
     profiles:
+      - setup
       - dev
       - prod
     env_file: ./secrets/db/.env
@@ -55,11 +54,13 @@ services:
       retries: 5
       start_period: 10s
 
-  migrate_db_dev:
+  initialize:
     image: pixelfed
     profiles:
-      - dev
-    env_file: ./secrets/pixelfed/dev.env
+      - setup
+    env_file:
+      - ./secrets/pixelfed/dev.env
+      - ./secrets/pixelfed/init.env
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
     networks:
@@ -70,10 +71,19 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ['php', 'artisan', 'migrate']
+    command:
+      [
+        '/bin/sh',
+        '-c',
+        'php artisan migrate && php artisan import:cities && php artisan instance:actor && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan passport:client --personal --name=pixelfed -n && (php artisan user:create --name="$$ADMIN_DISPLAY_NAME" --email="$$ADMIN_EMAIL" --username="$$ADMIN_USER_NAME" --password="$$ADMIN_PASSWORD" --is_admin=1 --confirm_email=1 --no-interaction || true)',
+      ]
 
   redis:
     image: redis:alpine
+    profiles:
+      - setup
+      - dev
+      - prod
     restart: unless-stopped
     volumes:
       - redis:/data

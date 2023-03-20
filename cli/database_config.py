@@ -1,18 +1,15 @@
-from secrets import choice
-import string
 from .service_config import ServiceConfig
 from .config import Config
 from .dirs import Dirs
 from .template import fill_template
+from .util import generate_password
 
 
 class DatabaseConfig(ServiceConfig):
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
         if not secrets.get(["db", "password"]):
-            password = "".join(
-                choice(string.ascii_letters + string.digits) for i in range(32)
-            )
+            password = generate_password(length=32)
             secrets.set(["db", "password"], password)
 
         if not secrets.get(["db", "backup", "endpoint_url"]):

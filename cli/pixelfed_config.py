@@ -5,12 +5,29 @@ from .config import Config
 from .dirs import Dirs
 
 from .template import fill_template
-from .util import check_result
+from .util import check_result, generate_password
 
 
 class PixelfedConfig(ServiceConfig):
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
+        if not secrets.get(["pixelfed", "admin", "user_name"]):
+            secrets.set(
+                ["pixelfed", "admin", "user_name"],
+                input("What's the admin's username? "),
+            )
+        if not secrets.get(["pixelfed", "admin", "email"]):
+            secrets.set(
+                ["pixelfed", "admin", "email"],
+                input("What's the admin's email? "),
+            )
+        if not secrets.get(["pixelfed", "admin", "display_name"]):
+            secrets.set(
+                ["pixelfed", "admin", "display_name"],
+                input("What's the admin's display name? "),
+            )
+        if not secrets.get(["pixelfed", "admin", "password"]):
+            secrets.set(["pixelfed", "admin", "password"], generate_password(length=32))
         if not secrets.get(["pixelfed", "app_key"]):
             subprocess.run(
                 ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
@@ -106,6 +123,12 @@ class PixelfedConfig(ServiceConfig):
         fill_template(
             template=dirs.templates / "pixelfed_dev.env",
             dest=dirs.secrets / "pixelfed" / "dev.env",
+            config=config,
+            secrets=secrets,
+        )
+        fill_template(
+            template=dirs.templates / "pixelfed_init.env",
+            dest=dirs.secrets / "pixelfed" / "init.env",
             config=config,
             secrets=secrets,
         )
