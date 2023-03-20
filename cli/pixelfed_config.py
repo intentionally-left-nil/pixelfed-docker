@@ -39,6 +39,55 @@ class PixelfedConfig(ServiceConfig):
             app_key = result.stdout.decode("utf-8").strip()
             secrets.set(["pixelfed", "app_key"], app_key)
 
+        if not secrets.get(["pixelfed", "oauth_private_key"]):
+            subprocess.run(
+                ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
+                check=True,
+            )
+            result = subprocess.run(
+                [
+                    "sudo",
+                    "docker-compose",
+                    "--profile",
+                    "dev",
+                    "run",
+                    "--rm",
+                    "--no-deps",
+                    "app_dev",
+                    "/bin/sh",
+                    "-c",
+                    "php artisan passport:keys -q --force && cat /var/www/storage/oauth-private.key && echo '' && cat /var/www/storage/oauth-public.key && rm /var/www/storage/oauth-public.key && rm /var/www/storage/oauth-private.key",
+                ],
+                capture_output=True,
+                timeout=10,
+            )
+            check_result(result)
+            output = result.stdout.decode("utf-8").strip().replace("\r", "")
+            match = re.match(
+                r"^.*BEGIN RSA PRIVATE KEY(?:.|\s)*?END RSA PRIVATE KEY.*$",
+                output,
+                re.MULTILINE,
+            )
+            if match is None:
+                print(output)
+                print(result.stderr)
+                raise RuntimeError(
+                    "Could not find RSA PRIVATE KEY after running passport:keys"
+                )
+            secrets.set(["pixelfed", "oauth_private_key"], match.group(0))
+            match = re.search(
+                r"^.*BEGIN PUBLIC KEY(?:.|\s)*?END PUBLIC KEY.*$",
+                output,
+                re.MULTILINE,
+            )
+            if match is None:
+                print(output)
+                print(result.stderr)
+                raise RuntimeError(
+                    "Could not find PUBLIC KEY after running passport:keys"
+                )
+            secrets.set(["pixelfed", "oauth_public_key"], match.group(0))
+
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
         source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.apache"

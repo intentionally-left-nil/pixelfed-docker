@@ -117,7 +117,7 @@ class NginxConfig(ServiceConfig):
             match = re.search(
                 r"ACCOUNT_THUMBPRINT='(.*)'$", result.stdout.decode("utf-8")
             )
-            if match == None:
+            if match is None:
                 print(stdout)
                 raise RuntimeError(
                     "Could not find ACCOUNT_THUMBPRINT in acme.sh --register-account"
