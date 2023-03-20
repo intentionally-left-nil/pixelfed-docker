@@ -5,4 +5,4 @@ log_level: debug
 tunnels:
   web:
     proto: http
-    addr: nginx-dev:80
+    addr: nginx_dev:80

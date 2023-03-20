@@ -23,7 +23,7 @@ services:
     env_file: ./secrets/pixelfed/dev.env
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - '/config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
     networks:
       app:
         aliases:
@@ -35,6 +35,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      app_dynamic_domain:
+        condition: service_completed_successfully
   db:
     image: postgres:alpine
     profiles:
@@ -126,8 +128,29 @@ services:
       - '4040:4040'
     networks:
       - www
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'wget -O - localhost:4040/api/tunnels | grep public_url']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
-  nginx-dev:
+  app_dynamic_domain:
+    image: python:alpine
+    profiles:
+      - dev
+    volumes:
+      - ./config/app_dynamic_domain/app.py:/app.py
+      - ./secrets/pixelfed/dev.env:/dev.env
+    command: ['python', '/app.py']
+    networks:
+      - www
+    depends_on:
+      ngrok:
+        condition: 'service_healthy'
+
+  nginx_dev:
     image: nginx:mainline-alpine
     restart: 'unless-stopped'
     profiles:
@@ -139,7 +162,10 @@ services:
       - app
     ports:
       - '8000:8000'
-  redirect-dev:
+    depends_on:
+      - app_dev
+
+  redirect_dev:
     build:
       context: './config/redirect_dev'
     profiles:
