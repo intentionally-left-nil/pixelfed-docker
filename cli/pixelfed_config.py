@@ -11,6 +11,9 @@ from .util import check_result, generate_password
 class PixelfedConfig(ServiceConfig):
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
+        if not config.get(["pixelfed", "max_size_mb"]):
+            max_size = int(input("How many MB do you want to limit photo sizes to? "))
+            config.set(["pixelfed", "max_size_mb"], str(max_size))
         if not secrets.get(["pixelfed", "admin", "user_name"]):
             secrets.set(
                 ["pixelfed", "admin", "user_name"],
@@ -129,6 +132,13 @@ class PixelfedConfig(ServiceConfig):
         fill_template(
             template=dirs.templates / "pixelfed_init.env",
             dest=dirs.secrets / "pixelfed" / "init.env",
+            config=config,
+            secrets=secrets,
+        )
+
+        fill_template(
+            template=dirs.templates / "php.ini",
+            dest=dirs.config / "pixelfed" / "php.ini",
             config=config,
             secrets=secrets,
         )

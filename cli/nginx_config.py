@@ -66,6 +66,12 @@ class NginxConfig(ServiceConfig):
             config=config,
             secrets=secrets,
         )
+        fill_template(
+            template=dirs.templates / "nginx_dev.conf",
+            dest=dirs.config / "nginx_dev" / "default.conf",
+            config=config,
+            secrets=secrets,
+        )
 
         made_changes = False
         if not config.get(["acme", "account_thumbprint"]):
