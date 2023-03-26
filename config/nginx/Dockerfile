@@ -11,3 +11,5 @@ RUN (crontab -l; echo "* * * * * /root/create_certs.sh") | sort -u | crontab -
 
 COPY renew.sh /docker-entrypoint.d/99-renew.sh
 RUN chmod +x /docker-entrypoint.d/99-renew.sh
+
+COPY pixelfed/public /usr/share/nginx/html

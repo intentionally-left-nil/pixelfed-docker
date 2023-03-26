@@ -23,6 +23,9 @@ def configure():
         NginxConfig,
         PixelfedConfig,
     ]
+    # Special case
+    PixelfedConfig.generate_pixelfed_secrets(secrets=secrets, dirs=dirs)
+
     [c.configure(config=config, secrets=secrets) for c in configs]
     [c.update_files(config=config, secrets=secrets, dirs=dirs) for c in configs]
     config.save()

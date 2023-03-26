@@ -167,6 +167,7 @@ cython_debug/
 config/config.toml
 config/nginx/default.conf
 config/nginx/ssl.conf
+config/nginx/pixelfed
 config/pixelfed/Dockerfile
 config/pixelfed/php.ini
 config/nginx_dev/default.conf

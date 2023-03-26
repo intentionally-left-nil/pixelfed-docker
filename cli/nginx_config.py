@@ -73,6 +73,13 @@ class NginxConfig(ServiceConfig):
             secrets=secrets,
         )
 
+        try:
+            (dirs.config / "nginx" / "pixelfed").absolute().symlink_to(
+                (dirs.root / "pixelfed").absolute(), target_is_directory=True
+            )
+        except FileExistsError:
+            pass
+
         made_changes = False
         if not config.get(["acme", "account_thumbprint"]):
             made_changes = True

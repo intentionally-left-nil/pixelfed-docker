@@ -10,28 +10,13 @@ from .util import check_result, generate_password
 
 class PixelfedConfig(ServiceConfig):
     @classmethod
-    def configure(cls, *, config: Config, secrets: Config):
-        if not config.get(["pixelfed", "max_size_mb"]):
-            max_size = int(input("How many MB do you want to limit photo sizes to? "))
-            config.set(["pixelfed", "max_size_mb"], str(max_size))
-        if not secrets.get(["pixelfed", "admin", "user_name"]):
-            secrets.set(
-                ["pixelfed", "admin", "user_name"],
-                input("What's the admin's username? "),
-            )
-        if not secrets.get(["pixelfed", "admin", "email"]):
-            secrets.set(
-                ["pixelfed", "admin", "email"],
-                input("What's the admin's email? "),
-            )
-        if not secrets.get(["pixelfed", "admin", "display_name"]):
-            secrets.set(
-                ["pixelfed", "admin", "display_name"],
-                input("What's the admin's display name? "),
-            )
-        if not secrets.get(["pixelfed", "admin", "password"]):
-            secrets.set(["pixelfed", "admin", "password"], generate_password(length=32))
+    def generate_pixelfed_secrets(cls, *, secrets: Config, dirs: Dirs):
+        # Hacks galore: This config requires getting the pixelfed image built first
+        # so we need to bootstrap the stuff normally run during update_files
+        # Revisit this in the future to better handle this special case.
         if not secrets.get(["pixelfed", "app_key"]):
+            create_dockerfile(dirs)
+            generate_empty_docker_env_files(dirs)
             subprocess.run(
                 ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
                 check=True,
@@ -41,16 +26,15 @@ class PixelfedConfig(ServiceConfig):
                     "sudo",
                     "docker-compose",
                     "--profile",
-                    "dev",
+                    "setup",
                     "run",
                     "--rm",
                     "--no-deps",
-                    "app_dev",
-                    "php",
-                    "artisan",
-                    "key:generate",
-                    "--show",
-                    "--no-ansi",
+                    "--entrypoint",
+                    "/bin/sh",
+                    "pixelfed",
+                    "-c",
+                    "php artisan key:generate --show --no-ansi",
                 ],
                 capture_output=True,
                 timeout=10,
@@ -60,6 +44,8 @@ class PixelfedConfig(ServiceConfig):
             secrets.set(["pixelfed", "app_key"], app_key)
 
         if not secrets.get(["pixelfed", "oauth_private_key"]):
+            create_dockerfile(dirs)
+            generate_empty_docker_env_files(dirs)
             subprocess.run(
                 ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
                 check=True,
@@ -69,12 +55,13 @@ class PixelfedConfig(ServiceConfig):
                     "sudo",
                     "docker-compose",
                     "--profile",
-                    "dev",
+                    "setup",
                     "run",
                     "--rm",
                     "--no-deps",
-                    "app_dev",
+                    "--entrypoint",
                     "/bin/sh",
+                    "pixelfed",
                     "-c",
                     "php artisan passport:keys -q --force && cat /var/www/storage/oauth-private.key && echo '' && cat /var/www/storage/oauth-public.key && rm /var/www/storage/oauth-public.key && rm /var/www/storage/oauth-private.key",
                 ],
@@ -107,22 +94,34 @@ class PixelfedConfig(ServiceConfig):
                     "Could not find PUBLIC KEY after running passport:keys"
                 )
             secrets.set(["pixelfed", "oauth_public_key"], match.group(0))
+        pass
+
+    @classmethod
+    def configure(cls, *, config: Config, secrets: Config):
+        if not config.get(["pixelfed", "max_size_mb"]):
+            max_size = int(input("How many MB do you want to limit photo sizes to? "))
+            config.set(["pixelfed", "max_size_mb"], str(max_size))
+        if not secrets.get(["pixelfed", "admin", "user_name"]):
+            secrets.set(
+                ["pixelfed", "admin", "user_name"],
+                input("What's the admin's username? "),
+            )
+        if not secrets.get(["pixelfed", "admin", "email"]):
+            secrets.set(
+                ["pixelfed", "admin", "email"],
+                input("What's the admin's email? "),
+            )
+        if not secrets.get(["pixelfed", "admin", "display_name"]):
+            secrets.set(
+                ["pixelfed", "admin", "display_name"],
+                input("What's the admin's display name? "),
+            )
+        if not secrets.get(["pixelfed", "admin", "password"]):
+            secrets.set(["pixelfed", "admin", "password"], generate_password(length=32))
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
-        source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.apache"
-        with open(source, mode="r", encoding="utf-8") as f:
-            dockerfile = f.read()
-            enable_pg = re.compile(r"^\s*#(.*(?:libpq-dev|pdo_pgsql).*)$", re.MULTILINE)
-            dockerfile = enable_pg.sub(r"\1", dockerfile)
-            dockerfile = dockerfile.replace("pdo_sqlite ", "")
-
-            dest = dirs.config / "pixelfed" / "Dockerfile"
-            dest.parent.mkdir(exist_ok=True)
-
-            with open(dest, "w", encoding="utf-8") as f:
-                f.write(dockerfile)
-
+        create_dockerfile(dirs)
         fill_template(
             template=dirs.templates / "pixelfed_dev.env",
             dest=dirs.secrets / "pixelfed" / "dev.env",
@@ -142,3 +141,35 @@ class PixelfedConfig(ServiceConfig):
             config=config,
             secrets=secrets,
         )
+
+
+def create_dockerfile(dirs: Dirs):
+    source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.fpm"
+    with open(source, mode="r", encoding="utf-8") as f:
+        dockerfile = f.read()
+        enable_pg = re.compile(r"^\s*#(.*(?:libpq-dev|pdo_pgsql).*)$", re.MULTILINE)
+        dockerfile = enable_pg.sub(r"\1", dockerfile)
+        dockerfile = dockerfile.replace("pdo_sqlite ", "")
+
+        dest = dirs.config / "pixelfed" / "Dockerfile"
+        dest.parent.mkdir(exist_ok=True)
+
+        with open(dest, "w", encoding="utf-8") as f:
+            f.write(dockerfile)
+
+
+def generate_empty_docker_env_files(dirs: Dirs):
+    files = [
+        dirs.secrets / "nginx" / ".env",
+        dirs.secrets / "pixelfed" / "dev.env",
+        dirs.secrets / "pixelfed" / "init.env",
+        dirs.secrets / "db" / ".env",
+        dirs.secrets / "db_backup" / ".env",
+    ]
+
+    for file in files:
+        file.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(file, "a") as f:
+            # Create the file if it doesn't already exist
+            pass
