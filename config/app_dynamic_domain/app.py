@@ -32,12 +32,3 @@ if __name__ == "__main__":
 
     with open("/dev.env", "w", encoding="utf-8") as f:
         f.write(env)
-
-    with open("/apache_dev.conf", "r", encoding="utf-8") as f:
-        conf = f.read()
-        conf = re.sub(
-            r"^\s?ServerName.*$", f"ServerName {domain}:80", conf, flags=re.MULTILINE
-        )
-
-    with open("/apache_dev.conf", "w", encoding="utf-8") as f:
-        f.write(conf)

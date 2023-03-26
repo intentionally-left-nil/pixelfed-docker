@@ -24,8 +24,6 @@ services:
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
       - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
-      - './config/pixelfed/apache_dev.conf:/etc/apache2/sites-available/000-default.conf:ro'
-      - './config/pixelfed/apache2.conf:/etc/apache2/apache2.conf:ro'
     networks:
       app:
         aliases:
@@ -145,7 +143,6 @@ services:
     volumes:
       - ./config/app_dynamic_domain/app.py:/app.py
       - ./secrets/pixelfed/dev.env:/dev.env
-      - ./config/pixelfed/apache_dev.conf:/apache_dev.conf
     command: ['python', '/app.py']
     networks:
       - www
