@@ -21,6 +21,7 @@ services:
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
+    init: true
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
       - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
