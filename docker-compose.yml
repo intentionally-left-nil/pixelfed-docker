@@ -25,6 +25,8 @@ services:
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
       - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - pixelfed-storage:/var/www/storage
+      - pixelfed-bootstrap:/var/www/bootstrap
     command:
       [
         '/bin/sh',
@@ -35,6 +37,30 @@ services:
       app:
         aliases:
           - app
+      db:
+      cache:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app_dynamic_domain:
+        condition: service_completed_successfully
+
+  worker_dev:
+    image: pixelfed
+    profiles:
+      - dev
+    env_file: ./secrets/pixelfed/dev.env
+    init: true
+    volumes:
+      - './secrets/pixelfed/dev.env:/var/www/.env'
+      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - pixelfed-storage:/var/www/storage
+      - pixelfed-bootstrap:/var/www/bootstrap
+    command: 'gosu www-data php artisan horizon'
+    networks:
+      app:
       db:
       cache:
     depends_on:
@@ -85,7 +111,7 @@ services:
       [
         '/bin/sh',
         '-c',
-        'php artisan migrate && php artisan import:cities && php artisan instance:actor && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan passport:client --personal --name=pixelfed -n && (php artisan user:create --name="$$ADMIN_DISPLAY_NAME" --email="$$ADMIN_EMAIL" --username="$$ADMIN_USER_NAME" --password="$$ADMIN_PASSWORD" --is_admin=1 --confirm_email=1 --no-interaction || true)',
+        'php artisan migrate && php artisan import:cities && php artisan instance:actor && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan passport:client --personal --name=pixelfed -n && php artisan horizon:install && php artisan horizon:publish && (php artisan user:create --name="$$ADMIN_DISPLAY_NAME" --email="$$ADMIN_EMAIL" --username="$$ADMIN_USER_NAME" --password="$$ADMIN_PASSWORD" --is_admin=1 --confirm_email=1 --no-interaction || true)',
       ]
 
   redis:
@@ -193,3 +219,5 @@ volumes:
   acme:
   db:
   redis:
+  pixelfed-bootstrap:
+  pixelfed-storage:
