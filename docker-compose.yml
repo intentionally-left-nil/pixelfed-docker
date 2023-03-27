@@ -70,6 +70,28 @@ services:
         condition: service_healthy
       app_dynamic_domain:
         condition: service_completed_successfully
+  periodic_dev:
+    build:
+      context: './config/periodic'
+    profiles:
+      - dev
+    env_file: ./secrets/pixelfed/dev.env
+    volumes:
+      - './secrets/pixelfed/dev.env:/var/www/.env'
+      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - pixelfed-storage:/var/www/storage
+      - pixelfed-bootstrap:/var/www/bootstrap
+    networks:
+      app:
+      db:
+      cache:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app_dynamic_domain:
+        condition: service_completed_successfully
   db:
     image: postgres:alpine
     profiles:
