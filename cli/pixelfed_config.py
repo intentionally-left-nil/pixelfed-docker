@@ -98,6 +98,33 @@ class PixelfedConfig(ServiceConfig):
 
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
+        if not secrets.get(["pixelfed", "s3", "endpoint_url"]):
+            secrets.set(
+                ["pixelfed", "s3", "endpoint_url"],
+                input(
+                    "What s3 endpoint do you want to use to store your pixelfed files? "
+                ),
+            )
+        if not secrets.get(["pixelfed", "s3", "access_key"]):
+            secrets.set(
+                ["pixelfed", "s3", "access_key"],
+                input("What's the aws access key id? "),
+            )
+        if not secrets.get(["pixelfed", "s3", "secret_access_key"]):
+            secrets.set(
+                ["pixelfed", "s3", "secret_access_key"],
+                input("What's the aws secret access key? "),
+            )
+        if not secrets.get(["pixelfed", "s3", "region"]):
+            secrets.set(
+                ["pixelfed", "s3", "region"],
+                input("What's the aws region? "),
+            )
+        if not secrets.get(["pixelfed", "s3", "bucket"]):
+            secrets.set(
+                ["pixelfed", "s3", "bucket"],
+                input("What bucket do you want to store your pixelfed files in? "),
+            )
         if not config.get(["pixelfed", "max_size_mb"]):
             max_size = int(input("How many MB do you want to limit photo sizes to? "))
             config.set(["pixelfed", "max_size_mb"], str(max_size))
