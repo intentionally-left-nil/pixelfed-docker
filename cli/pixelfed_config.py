@@ -184,6 +184,10 @@ def create_dockerfile(dirs: Dirs):
         enable_pg = re.compile(r"^\s*#(.*(?:libpq-dev|pdo_pgsql).*)$", re.MULTILINE)
         dockerfile = enable_pg.sub(r"\1", dockerfile)
         dockerfile = dockerfile.replace("pdo_sqlite ", "")
+        dockerfile = dockerfile.replace(
+            "ARG DEBIAN_FRONTEND=noninteractive",
+            "ARG DEBIAN_FRONTEND=noninteractive\nRUN deluser www-data || true\nRUN delgroup www-data || true\nRUN addgroup --gid 1000 www-data && adduser --uid 1000 --gid 1000 --disabled-password --no-create-home www-data",
+        )
 
         dest = dirs.config / "pixelfed" / "Dockerfile"
         dest.parent.mkdir(exist_ok=True)

@@ -1,4 +1,10 @@
 FROM nginx:mainline-alpine
+
+RUN deluser www-data || true
+RUN delgroup www-data || true
+RUN adduser -D -H -u 1000 -s /bin/sh www-data
+RUN sed -i -e 's/user\s\+nginx;/user www-data;/' /etc/nginx/nginx.conf
+
 RUN apk update && apk add --no-cache curl openssl
 
 COPY bootstrap.sh /docker-entrypoint.d/98-bootstrap.sh
