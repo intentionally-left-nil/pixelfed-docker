@@ -99,12 +99,11 @@ class PixelfedConfig(ServiceConfig):
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
         if not secrets.get(["pixelfed", "s3", "endpoint_url"]):
-            secrets.set(
-                ["pixelfed", "s3", "endpoint_url"],
-                input(
-                    "What s3 endpoint do you want to use to store your pixelfed files? "
-                ),
+            url = input(
+                "What s3 endpoint do you want to use to store your pixelfed files? "
             )
+            url = url if "://" in url else "https://" + url
+            secrets.set(["pixelfed", "s3", "endpoint_url"], url)
         if not secrets.get(["pixelfed", "s3", "access_key"]):
             secrets.set(
                 ["pixelfed", "s3", "access_key"],
@@ -124,6 +123,29 @@ class PixelfedConfig(ServiceConfig):
             secrets.set(
                 ["pixelfed", "s3", "bucket"],
                 input("What bucket do you want to store your pixelfed files in? "),
+            )
+        if not secrets.get(["pixelfed", "s3_backup", "bucket"]):
+            secrets.set(
+                ["pixelfed", "s3_backup", "bucket"],
+                input("What bucket do you want to use for s3 backups? "),
+            )
+        if not secrets.get(["pixelfed", "s3_backup", "access_key"]):
+            secrets.set(
+                ["pixelfed", "s3_backup", "access_key"],
+                input("What's the aws access key id to use for s3 backups? "),
+            )
+        if not secrets.get(["pixelfed", "s3_backup", "secret_access_key"]):
+            secrets.set(
+                ["pixelfed", "s3_backup", "secret_access_key"],
+                input("What's the aws secret access key to use for s3 backups? "),
+            )
+        if not config.get(["pixelfed", "s3_backup", "max_backups"]):
+            days = int(input("How many days worth of s3 backups do you want to keep? "))
+            if days < 1:
+                raise RuntimeError(f"{days} must be > 0")
+            config.set(
+                ["pixelfed", "s3_backup", "max_backups"],
+                str(days),
             )
         if not config.get(["pixelfed", "max_size_mb"]):
             max_size = int(input("How many MB do you want to limit photo sizes to? "))
@@ -174,6 +196,19 @@ class PixelfedConfig(ServiceConfig):
             dest=dirs.config / "pixelfed" / "php-development.ini",
             config=config,
             secrets=secrets,
+        )
+        fill_template(
+            template=dirs.templates / "s3_backup.env",
+            dest=dirs.secrets / "s3_backup" / ".env",
+            config=config,
+            secrets=secrets,
+        )
+
+        check_result(
+            subprocess.run(
+                ["sudo", "docker-compose", "--profile", "setup", "build", "awscli"],
+                capture_output=True,
+            )
         )
 
 

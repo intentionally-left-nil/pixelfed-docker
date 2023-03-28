@@ -164,6 +164,15 @@ services:
       - setup
     entrypoint: ['/bin/sh']
     command: ['-c', '']
+
+  awscli:
+    image: awscli
+    build:
+      context: './config/awscli'
+    profiles:
+      - setup
+    entrypoint: ['/bin/sh']
+    command: ['-c', '']
   db_backup:
     build:
       context: './config/db_backup'
@@ -172,6 +181,12 @@ services:
     env_file: ./secrets/db_backup/.env
     networks:
       - db
+  s3_backup:
+    build:
+      context: './config/s3_backup'
+    profiles:
+      - prod
+    env_file: ./secrets/s3_backup/.env
   ngrok:
     image: ngrok/ngrok:3-alpine
     profiles:

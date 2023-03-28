@@ -13,12 +13,11 @@ class DatabaseConfig(ServiceConfig):
             secrets.set(["db", "password"], password)
 
         if not secrets.get(["db", "backup", "endpoint_url"]):
-            secrets.set(
-                ["db", "backup", "endpoint_url"],
-                input(
-                    "What s3 endpoint do you want to use for backing up the database? "
-                ),
+            url = input(
+                "What s3 endpoint do you want to use for backing up the database? "
             )
+            url = url if "://" in url else "https://" + url
+            secrets.set(["db", "backup", "endpoint_url"], url)
         if not secrets.get(["db", "backup", "access_key"]):
             secrets.set(
                 ["db", "backup", "access_key"],
