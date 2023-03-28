@@ -142,6 +142,13 @@ class PixelfedConfig(ServiceConfig):
             secrets=secrets,
         )
 
+        fill_template(
+            template=dirs.templates / "php-development.ini",
+            dest=dirs.config / "pixelfed" / "php-development.ini",
+            config=config,
+            secrets=secrets,
+        )
+
 
 def create_dockerfile(dirs: Dirs):
     source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.fpm"

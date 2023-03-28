@@ -24,7 +24,7 @@ services:
     init: true
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     command:
@@ -55,7 +55,7 @@ services:
     init: true
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     command: 'gosu www-data php artisan horizon'
@@ -78,7 +78,7 @@ services:
     env_file: ./secrets/pixelfed/dev.env
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     networks:
