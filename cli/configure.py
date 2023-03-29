@@ -6,6 +6,7 @@ from .ngrok_config import NgrokConfig
 from .nginx_config import NginxConfig
 from .database_config import DatabaseConfig
 from .pixelfed_config import PixelfedConfig
+from .backup_config import BackupConfig
 
 from typing import Type
 
@@ -22,6 +23,7 @@ def configure():
         NgrokConfig,
         NginxConfig,
         PixelfedConfig,
+        BackupConfig,
     ]
     # Special case
     PixelfedConfig.generate_pixelfed_secrets(secrets=secrets, dirs=dirs)
