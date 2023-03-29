@@ -146,6 +146,10 @@ class NginxConfig(ServiceConfig):
             made_changes
             or not (dirs.secrets / "nginx" / "initial_acme_config.tar").exists()
         ):
+            # Create the initial_acme_config.tar before running the container
+            # otherwise docker will create a folder in its place
+            with open(dirs.secrets / "nginx" / "initial_acme_config.tar", "wb"):
+                pass
             result = subprocess.run(
                 docker_compose_prefix()
                 + [
