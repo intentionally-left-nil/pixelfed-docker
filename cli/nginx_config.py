@@ -7,7 +7,7 @@ from .service_config import ServiceConfig
 from .config import Config
 from .dirs import Dirs
 from .template import fill_template
-from .util import check_result
+from .util import check_result, docker_compose_prefix
 
 
 class NginxConfig(ServiceConfig):
@@ -90,9 +90,8 @@ class NginxConfig(ServiceConfig):
                 pass
 
             result = subprocess.run(
-                [
-                    "sudo",
-                    "docker-compose",
+                docker_compose_prefix()
+                + [
                     "--profile",
                     "prod",
                     "run",
@@ -108,9 +107,8 @@ class NginxConfig(ServiceConfig):
             check_result(result)
 
             result = subprocess.run(
-                [
-                    "sudo",
-                    "docker-compose",
+                docker_compose_prefix()
+                + [
                     "--profile",
                     "prod",
                     "run",
@@ -149,9 +147,8 @@ class NginxConfig(ServiceConfig):
             or not (dirs.secrets / "nginx" / "initial_acme_config.tar").exists()
         ):
             result = subprocess.run(
-                [
-                    "sudo",
-                    "docker-compose",
+                docker_compose_prefix()
+                + [
                     "--profile",
                     "prod",
                     "run",

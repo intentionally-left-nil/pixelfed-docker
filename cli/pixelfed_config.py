@@ -5,7 +5,7 @@ from .config import Config
 from .dirs import Dirs
 
 from .template import fill_template
-from .util import check_result, generate_password
+from .util import check_result, generate_password, docker_compose_prefix
 
 
 class PixelfedConfig(ServiceConfig):
@@ -18,13 +18,12 @@ class PixelfedConfig(ServiceConfig):
             create_dockerfile(dirs)
             generate_empty_docker_env_files(dirs)
             subprocess.run(
-                ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
+                docker_compose_prefix() + ["--profile", "setup", "build", "pixelfed"],
                 check=True,
             )
             result = subprocess.run(
-                [
-                    "sudo",
-                    "docker-compose",
+                docker_compose_prefix()
+                + [
                     "--profile",
                     "setup",
                     "run",
@@ -47,13 +46,12 @@ class PixelfedConfig(ServiceConfig):
             create_dockerfile(dirs)
             generate_empty_docker_env_files(dirs)
             subprocess.run(
-                ["sudo", "docker-compose", "--profile", "setup", "build", "pixelfed"],
+                docker_compose_prefix() + ["--profile", "setup", "build", "pixelfed"],
                 check=True,
             )
             result = subprocess.run(
-                [
-                    "sudo",
-                    "docker-compose",
+                docker_compose_prefix()
+                + [
                     "--profile",
                     "setup",
                     "run",
