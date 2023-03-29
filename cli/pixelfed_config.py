@@ -160,6 +160,7 @@ class PixelfedConfig(ServiceConfig):
             dest=dirs.secrets / "pixelfed" / ".env",
             config=config,
             secrets=secrets,
+            overwrite_if_exists=False,
         )
         fill_template(
             template=dirs.templates / "pixelfed_init.env",
