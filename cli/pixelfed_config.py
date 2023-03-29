@@ -98,6 +98,9 @@ class PixelfedConfig(ServiceConfig):
 
     @classmethod
     def configure(cls, *, config: Config, secrets: Config):
+        if not secrets.get(["pixelfed", "salt"]):
+            secrets.set(["pixelfed", "salt"], generate_password(128))
+
         if not secrets.get(["pixelfed", "s3", "endpoint_url"]):
             url = input(
                 "What s3 endpoint do you want to use to store your pixelfed files? "
@@ -151,6 +154,12 @@ class PixelfedConfig(ServiceConfig):
         fill_template(
             template=dirs.templates / "pixelfed_dev.env",
             dest=dirs.secrets / "pixelfed" / "dev.env",
+            config=config,
+            secrets=secrets,
+        )
+        fill_template(
+            template=dirs.templates / "pixelfed.env",
+            dest=dirs.secrets / "pixelfed" / ".env",
             config=config,
             secrets=secrets,
         )
