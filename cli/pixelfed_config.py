@@ -104,6 +104,11 @@ class PixelfedConfig(ServiceConfig):
             )
             url = url if "://" in url else "https://" + url
             secrets.set(["pixelfed", "s3", "endpoint_url"], url)
+        if not secrets.get(["pixelfed", "s3", "region"]):
+            secrets.set(
+                ["pixelfed", "s3", "region"],
+                input("What's the aws region? "),
+            )
         if not secrets.get(["pixelfed", "s3", "access_key"]):
             secrets.set(
                 ["pixelfed", "s3", "access_key"],
@@ -113,11 +118,6 @@ class PixelfedConfig(ServiceConfig):
             secrets.set(
                 ["pixelfed", "s3", "secret_access_key"],
                 input("What's the aws secret access key? "),
-            )
-        if not secrets.get(["pixelfed", "s3", "region"]):
-            secrets.set(
-                ["pixelfed", "s3", "region"],
-                input("What's the aws region? "),
             )
         if not secrets.get(["pixelfed", "s3", "bucket"]):
             secrets.set(
