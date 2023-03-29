@@ -1,5 +1,6 @@
-FROM nginx:mainline-alpine
+FROM pixelfed as builder
 
+FROM nginx:mainline-alpine
 RUN deluser www-data || true
 RUN delgroup www-data || true
 RUN adduser -D -H -u 1000 -s /bin/sh www-data
@@ -16,4 +17,5 @@ RUN find /docker-entrypoint.d/ -type f -iname "*.sh" -exec chmod +x {} \;
 RUN chmod +x /root/create_certs.sh
 
 RUN (crontab -l; echo "* * * * * /root/create_certs.sh") | sort -u | crontab -
-COPY pixelfed/public /usr/share/nginx/html
+
+COPY --from=builder /var/www/public /var/www/public
