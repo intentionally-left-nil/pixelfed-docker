@@ -1,5 +1,5 @@
 #! /bin/bash
-set +x
+set -x
 set -o pipefail
 
 {
@@ -34,6 +34,8 @@ set -o pipefail
   i=1;
   for filename in $files; do
     if [ "$i" -gt "$MAX_DB_BACKUPS" ]; then
+      # Remove the trailing slash from the foldername
+      filename=${filename%/}
       echo "removing $dest_root/db/$filename"
       aws --endpoint-url "$AWS_ENDPOINT_URL" s3 rm "$dest_root/db/$filename" --recursive || exit 1
     fi
@@ -45,6 +47,8 @@ set -o pipefail
   i=1;
   for filename in $files; do
     if [ "$i" -gt "$MAX_FILE_BACKUPS" ]; then
+      # Remove the trailing slash from the foldername
+      filename=${filename%/}
       echo "removing $dest_root/cloud_files/$filename"
       aws --endpoint-url "$AWS_ENDPOINT_URL" s3 rm "$dest_root/cloud_files/$filename" --recursive --quiet || exit 1
     fi
