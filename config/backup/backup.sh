@@ -19,6 +19,12 @@ set -o pipefail
   echo "Backing up the database to $dest_root/db/$now"
   pg_dump -d "postgres://postgres:$POSTGRES_PASSWORD@db:5432/pixelfed" --format=custom | aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp - "$dest_root/db/$now/pg.dmp" || exit 1
 
+  if [ "${BACKUP_ENVIRONMENT:-prod}" = "prod" ]; then
+    AWS_SOURCE_BUCKET=$AWS_PROD_SOURCE_BUCKET
+  else
+    AWS_SOURCE_BUCKET=$AWS_DEV_SOURCE_BUCKET
+  fi
+
   echo "Backing up s3://$AWS_SOURCE_BUCKET to $dest_root/cloud_files/$now"
   aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp "s3://$AWS_SOURCE_BUCKET" "$dest_root/cloud_files/$now" --recursive --quiet || exit 1
 
