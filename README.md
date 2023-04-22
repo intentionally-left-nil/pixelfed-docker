@@ -61,7 +61,7 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 1. `cd pixelfed-docker` (wherever you copied it to)
 1. `docker compose --profile setup build`
 1. `docker compose --profile setup run initialize`
-1. `docker compose --profile prod up`1
+1. `docker compose --profile prod up`
 1. Navigate to your website. When you first visit, you might get a SSL warning about self-signed certificates. Wait 2-5 minutes for the registration to automatically finish
 1. Refresh your browser after 5 minutes and the SSL certificate should be installed
 1. Figure out how to autostart docker on your webhost. For example:
