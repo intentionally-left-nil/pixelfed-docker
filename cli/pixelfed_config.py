@@ -125,6 +125,18 @@ class PixelfedConfig(ServiceConfig):
                 ["pixelfed", "s3", "bucket"],
                 input("What bucket do you want to store your PROD pixelfed files in? "),
             )
+        if not secrets.get(["pixelfed", "s3", "aws_url"]):
+            endpoint_url: str = str(secrets.get(["pixelfed", "s3", "endpoint_url"]))
+            bucket = secrets.get(["pixelfed", "s3", "bucket"])
+            protocol, domain = endpoint_url.split("://", maxsplit=1)
+            default_aws_url = f"{protocol}://{bucket}.{domain}"
+
+            aws_url = input(
+                f"What do you want to use for your PROD AWS_URL? Default: {default_aws_url}"
+            )
+            if not aws_url.strip():
+                aws_url = default_aws_url
+            secrets.set(["pixelfed", "s3", "aws_url"], default_aws_url)
         if not secrets.get(["pixelfed", "s3", "dev_access_key"]):
             secrets.set(
                 ["pixelfed", "s3", "dev_access_key"],
@@ -140,6 +152,18 @@ class PixelfedConfig(ServiceConfig):
                 ["pixelfed", "s3", "dev_bucket"],
                 input("What bucket do you want to store your DEV pixelfed files in? "),
             )
+        if not secrets.get(["pixelfed", "s3", "dev_aws_url"]):
+            endpoint_url: str = str(secrets.get(["pixelfed", "s3", "endpoint_url"]))
+            bucket = secrets.get(["pixelfed", "s3", "dev_bucket"])
+            protocol, domain = endpoint_url.split("://", maxsplit=1)
+            default_aws_url = f"{protocol}://{bucket}.{domain}"
+
+            aws_url = input(
+                f"What do you want to use for your DEV AWS_URL? Default: {default_aws_url}"
+            )
+            if not aws_url.strip():
+                aws_url = default_aws_url
+            secrets.set(["pixelfed", "s3", "dev_aws_url"], default_aws_url)
         if not config.get(["pixelfed", "max_size_mb"]):
             max_size = int(input("How many MB do you want to limit photo sizes to? "))
             config.set(["pixelfed", "max_size_mb"], str(max_size))
