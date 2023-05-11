@@ -164,6 +164,12 @@ class PixelfedConfig(ServiceConfig):
             if not aws_url.strip():
                 aws_url = default_aws_url
             secrets.set(["pixelfed", "s3", "dev_aws_url"], default_aws_url)
+        if not secrets.get(["pixelfed", "pusher", "id"]):
+            secrets.set(["pixelfed", "pusher", "id"], generate_password(length=20))
+        if not secrets.get(["pixelfed", "pusher", "key"]):
+            secrets.set(["pixelfed", "pusher", "key"], generate_password(length=20))
+        if not secrets.get(["pixelfed", "pusher", "secret"]):
+            secrets.set(["pixelfed", "pusher", "secret"], generate_password(length=20))
         if not config.get(["pixelfed", "max_size_mb"]):
             max_size = int(input("How many MB do you want to limit photo sizes to? "))
             config.set(["pixelfed", "max_size_mb"], str(max_size))
@@ -234,6 +240,7 @@ def create_dockerfile(dirs: Dirs):
             "ARG DEBIAN_FRONTEND=noninteractive",
             "ARG DEBIAN_FRONTEND=noninteractive\nRUN deluser www-data || true\nRUN delgroup www-data || true\nRUN addgroup --gid 1000 www-data && adduser --uid 1000 --gid 1000 --disabled-password --no-create-home www-data",
         )
+        dockerfile = dockerfile.replace("php:8.1-fpm-bullseye", "php:8.2-fpm-bullseye")
 
         dest = dirs.config / "pixelfed" / "Dockerfile"
         dest.parent.mkdir(exist_ok=True)

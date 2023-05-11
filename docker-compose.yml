@@ -237,6 +237,29 @@ services:
         condition: service_healthy
       app_dynamic_domain:
         condition: service_completed_successfully
+  websocket_dev:
+    image: pixelfed
+    profiles:
+      - dev
+    env_file: ./secrets/pixelfed/dev.env
+    init: true
+    volumes:
+      - './secrets/pixelfed/dev.env:/var/www/.env'
+      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
+      - pixelfed-storage:/var/www/storage
+      - pixelfed-bootstrap:/var/www/bootstrap
+    command: 'gosu www-data php artisan websockets:serve'
+    networks:
+      app:
+      db:
+      cache:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app_dynamic_domain:
+        condition: service_completed_successfully
   periodic_dev:
     build:
       context: './config/periodic'
@@ -322,6 +345,7 @@ services:
       - '8000:8000'
     depends_on:
       - app_dev
+      - websocket_dev
 
   redirect_dev:
     build:

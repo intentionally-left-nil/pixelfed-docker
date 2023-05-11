@@ -29,6 +29,9 @@ if __name__ == "__main__":
         env = re.sub(
             r"^SESSION_DOMAIN=.*$", f"SESSION_DOMAIN={domain}", env, flags=re.MULTILINE
         )
+        env = re.sub(
+            r"^PUSHER_HOST=.*$", f"PUSHER_HOST={domain}", env, flags=re.MULTILINE
+        )
 
     with open("/dev.env", "w", encoding="utf-8") as f:
         f.write(env)
