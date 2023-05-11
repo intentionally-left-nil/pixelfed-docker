@@ -97,7 +97,7 @@ The nice thing about this setup is you can test the changes locally to your hear
 1. Re-build the dev environment `docker compose --profile dev build`
 1. Run the worker in docker `docker compose --profile dev run --rm -i -t worker /bin/sh`
 1. Switch to the www-data user: `su www-data`
-1. Do any upgrade steps you need to, such as upgrading the database: `php artisan migrate --force`
+1. Do any [upgrade steps](https://docs.pixelfed.org/running-pixelfed/administration/#updating-pixelfed) you need to, such as upgrading the database: `php artisan migrate --force` or fixing the compose cache: `composer dump-autoload`
 1. Exit the custom worker
 1. Test the changes `docker compose --profile dev up`
 1. Copy the files over to your prod webserver.
