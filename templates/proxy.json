@@ -1,0 +1,12 @@
+{
+  "email": "${px.secrets.acme.email}",
+  "domains": [
+    {
+      "name": "${px.domain.web}",
+      "aliases": [
+        "${px.domain.web_alias}"
+      ],
+      "dest": "http://nginx:80"
+    }
+  ]
+}
