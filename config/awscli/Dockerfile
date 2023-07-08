@@ -1,6 +1,6 @@
 FROM python:alpine AS builder
 
-ENV AWSCLI_VERSION=2.11.3
+ENV AWSCLI_VERSION=2.11.25
 
 RUN apk update && apk add --no-cache \
     curl \
