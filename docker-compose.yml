@@ -76,7 +76,7 @@ services:
       redis:
         condition: service_healthy
 
-  pixelfed:
+  nginx:
     build:
       context: './config/nginx'
     profiles:
@@ -86,12 +86,16 @@ services:
       - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - pixelfed-storage:/var/www/storage:ro
     networks:
-      - www
-      - app
+      www:
+        aliases:
+          - pixelfed
+      app:
+        aliases:
+          - pixelfed
     depends_on:
       - app
 
-  pixelfed_dev:
+  nginx_dev:
     build:
       context: './config/nginx'
     profiles:
