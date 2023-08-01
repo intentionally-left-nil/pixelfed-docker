@@ -7,7 +7,6 @@ from .service_config import ServiceConfig
 from .config import Config
 from .dirs import Dirs
 from .template import fill_template
-from .util import check_result, docker_compose_prefix
 
 
 class NginxConfig(ServiceConfig):
@@ -30,17 +29,3 @@ class NginxConfig(ServiceConfig):
             config=config,
             secrets=secrets,
         )
-
-        fill_template(
-            template=dirs.templates / "nginx_dev.conf",
-            dest=dirs.config / "nginx_dev" / "default.conf",
-            config=config,
-            secrets=secrets,
-        )
-
-        try:
-            (dirs.config / "nginx" / "pixelfed").absolute().symlink_to(
-                (dirs.root / "pixelfed").absolute(), target_is_directory=True
-            )
-        except FileExistsError:
-            pass

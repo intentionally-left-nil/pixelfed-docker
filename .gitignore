@@ -171,5 +171,4 @@ config/nginx/pixelfed
 config/pixelfed/Dockerfile
 config/pixelfed/php.ini
 config/pixelfed/php-development.ini
-config/nginx_dev/default.conf
 
