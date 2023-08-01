@@ -15,12 +15,7 @@ class PixelfedConfig(ServiceConfig):
         # so we need to bootstrap the stuff normally run during update_files
         # Revisit this in the future to better handle this special case.
         if not secrets.get(["pixelfed", "app_key"]):
-            create_dockerfile(dirs)
             generate_empty_docker_env_files(dirs)
-            subprocess.run(
-                docker_compose_prefix() + ["--profile", "setup", "build", "pixelfed"],
-                check=True,
-            )
             result = subprocess.run(
                 docker_compose_prefix()
                 + [
@@ -43,12 +38,7 @@ class PixelfedConfig(ServiceConfig):
             secrets.set(["pixelfed", "app_key"], app_key)
 
         if not secrets.get(["pixelfed", "oauth_private_key"]):
-            create_dockerfile(dirs)
             generate_empty_docker_env_files(dirs)
-            subprocess.run(
-                docker_compose_prefix() + ["--profile", "setup", "build", "pixelfed"],
-                check=True,
-            )
             result = subprocess.run(
                 docker_compose_prefix()
                 + [
@@ -187,7 +177,6 @@ class PixelfedConfig(ServiceConfig):
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
-        create_dockerfile(dirs)
         fill_template(
             template=dirs.templates / "pixelfed_dev.env",
             dest=dirs.secrets / "pixelfed" / "dev.env",
@@ -222,24 +211,6 @@ class PixelfedConfig(ServiceConfig):
             secrets=secrets,
         )
 
-
-def create_dockerfile(dirs: Dirs):
-    source = dirs.root / "pixelfed" / "contrib" / "docker" / "Dockerfile.fpm"
-    with open(source, mode="r", encoding="utf-8") as f:
-        dockerfile = f.read()
-        enable_pg = re.compile(r"^\s*#(.*(?:libpq-dev|pdo_pgsql).*)$", re.MULTILINE)
-        dockerfile = enable_pg.sub(r"\1", dockerfile)
-        dockerfile = dockerfile.replace("pdo_sqlite ", "")
-        dockerfile = dockerfile.replace(
-            "ARG DEBIAN_FRONTEND=noninteractive",
-            "ARG DEBIAN_FRONTEND=noninteractive\nRUN deluser www-data || true\nRUN delgroup www-data || true\nRUN addgroup --gid 1000 www-data && adduser --uid 1000 --gid 1000 --disabled-password --no-create-home www-data",
-        )
-
-        dest = dirs.config / "pixelfed" / "Dockerfile"
-        dest.parent.mkdir(exist_ok=True)
-
-        with open(dest, "w", encoding="utf-8") as f:
-            f.write(dockerfile)
 
 
 def generate_empty_docker_env_files(dirs: Dirs):

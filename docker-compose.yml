@@ -5,17 +5,16 @@ networks:
   app:
   ingress:
     name: ingress
+    external: true
 
 volumes:
-  acme:
   db:
   redis:
   pixelfed-bootstrap:
   pixelfed-storage:
-  reverse-proxy-data:
 services:
   app:
-    image: pixelfed
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.8
     profiles:
       - prod
     restart: unless-stopped
@@ -36,7 +35,7 @@ services:
       redis:
         condition: service_healthy
   worker:
-    image: pixelfed
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.8
     profiles:
       - prod
     env_file: ./secrets/pixelfed/.env
@@ -76,19 +75,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-  proxy:
-    image: ghcr.io/intentionally-left-nil/reverse-proxy:0.0.2
-    profiles:
-      - prod-proxy
-    restart: unless-stopped
-    volumes:
-      - ./secrets/nginx/proxy.json:/etc/reverse_proxy/config.json
-      - reverse-proxy-data:/etc/reverse_proxy/data
-    networks:
-      - ingress
-    ports:
-      - '80:80'
-      - '443:443'
 
   nginx:
     build:
@@ -100,7 +86,6 @@ services:
       - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - pixelfed-storage:/var/www/storage:ro
     networks:
-      - ingress
       - www
       - app
     depends_on:
@@ -127,7 +112,7 @@ services:
       start_period: 10s
 
   initialize:
-    image: pixelfed
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.8
     profiles:
       - setup
     env_file:
@@ -182,20 +167,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  pixelfed:
-    image: pixelfed
-    build:
-      context: './pixelfed'
-      dockerfile: '../config/pixelfed/Dockerfile'
-    profiles:
-      - setup
-    entrypoint: ['/bin/sh']
-    command: ['-c', '']
 
   # THE FOLLOWING SERVICES ARE ONLY NEEDED FOR THE DEV STACK
   # You can ignore the rest of this file when running on prod
   app_dev:
-    image: pixelfed
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.8
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
@@ -226,7 +202,7 @@ services:
         condition: service_completed_successfully
 
   worker_dev:
-    image: pixelfed
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.8
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env

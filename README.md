@@ -36,7 +36,7 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 
 # Installation
 
-1. Download the repository, including the pixelfed submodule: `git clone --recurse-submodules`
+1. Download the repository `git clone git@github.com:intentionally-left-nil/pixelfed-docker.git`
 1. `cd pixelfed-docker`
 1. Create a virtual environment for python `python -m venv ./env`
 1. Use the environment `source ./env/bin/activate`
@@ -46,7 +46,7 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 
 1. In the python environment (see the [Installation](#installation) steps), execute `./scaffold.py`. This will ask you a bunch of questions. Enter your answers on the command line and hit enter. You'll need the steps from the [Prerequisites](#prerequisites) to complete the config
 1. Once you answer all of the necessary questions, the code will generate the scaffolding you need
-1. Run the one-time setup tasks: `docker compose --profile setup run initialize`
+1. Run the one-time setup tasks: `docker compose --profile setup run --rm initialize`
 1. Run the dev server: `docker compose --profile dev up`
 1. Wait a minute for everything to build and start
 1. Navigate to https://localhost:8000
@@ -59,12 +59,8 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 1. Figure out how to copy the directory to your remote webserver. For example, you could run `rsync -av pixelfed-docker user@yourwebhost.com:/home/user/pixelfed-docker`, or similar
 1. Open an SSH tunnel to your webhost. Type the remaining commands in your SSH tunnel
 1. `cd pixelfed-docker` (wherever you copied it to)
-1. `docker compose --profile setup build`
 1. `docker compose --profile setup run initialize`
 1. `docker compose --profile prod up`
-1. If you need the reverse proxy, then you also want `docker compose --profile prod-proxy up`
-1. Navigate to your website. When you first visit, you might get a SSL warning about self-signed certificates. Wait 2-5 minutes for the registration to automatically finish
-1. Refresh your browser after 5 minutes and the SSL certificate should be installed
 1. Figure out how to autostart docker on your webhost. For example:
 
 ```
@@ -92,9 +88,7 @@ WantedBy=multi-user.target
 
 The nice thing about this setup is you can test the changes locally to your hearts content before deploying!
 
-1. Back in your local terminal, `cd pixelfed-docker/pixelfed`
-1. Update the git repository to the appropriate commit you're interested in. E.g `git pull origin dev`
-1. Re-build the pixelfed base image `docker compose --profile setup build pixelfed`
+1. Update the docker-compose file for all of the pixelfed images to point to the new verison
 1. Re-build the dev environment `docker compose --profile dev build`
 1. Run the worker in docker `docker compose --profile dev run --rm -i -t worker /bin/sh`
 1. Switch to the www-data user: `su www-data`
@@ -135,14 +129,6 @@ Then, the scaffold.py script takes the files in the [templates](./templates/) fo
 # Running Locally
 
 If you try to run pixelfed and visit it from http://localhost, it just won't work. Pixelfed needs a domain to work properly. Ngrok is great, because we can have a domain name, but it's powered by our local computer. There's only one catch. If you don't pay for ngrok, then your domain name changes every time. As a workaround, the repo contains the [app_dynamic_domain](./config/app_dynamic_domain/app.py) docker image which updates the pixelfed env files to use the new domain automatically during startup. Lastly, we need to refresh the pixelfed config to pick up the new environment. There's a [pending PR](https://github.com/pixelfed/pixelfed/pull/4255) to handle this better, but in the mean time this is why the docker-compose file specifies the run command for the worker
-
-# SSL certificates
-
-The scaffolding uses the stateless version of the [http challenge](https://letsencrypt.org/docs/challenge-types/#http-01-challenge) to generate your certs. This means we can do in in two steps.
-
-First, when running the scaffold.py, the script connects with LetsEncrypt, and registers a new account. When you register, you get two things: A private key, as well as an account_thumbprint. The account thumbprint is a string that needs to get returned by the webserver when you visit [your-domain]/.well-known/acme-challenge. Since this thumbprint is the same no matter what, we can just use the [nginx template](./templates/nginx.conf) to respond appropriately.
-
-Then, when you run nginx on the prod account, it initially configures itself with self-signed certs (just to get started). It then starts the server, so that way nginx can begin responding to .well-known requests. A [cron job](./config/nginx/create_certs.sh) inside of the nginx container detects that no certs have been created. It then uses the registration information uploaded from the scaffolding to generate the certificate. Finally, the nginx configuration is reloaded, and the certs are up and running!
 
 # Backups
 
