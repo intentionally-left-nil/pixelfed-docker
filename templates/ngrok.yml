@@ -5,4 +5,4 @@ log_level: debug
 tunnels:
   web:
     proto: http
-    addr: pixelfed_web:80
+    addr: pixelfed:80
