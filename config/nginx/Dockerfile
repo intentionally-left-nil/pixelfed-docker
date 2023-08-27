@@ -1,4 +1,4 @@
-FROM ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9 as builder
+FROM ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9-with-username-fix as builder
 
 FROM nginx:mainline-alpine
 RUN deluser www-data || true
