@@ -169,7 +169,5 @@ config/nginx/default.conf
 config/nginx/ssl.conf
 config/nginx/pixelfed
 config/pixelfed/Dockerfile
-config/pixelfed/php.ini
-config/pixelfed/php-development.ini
 
 Makefile

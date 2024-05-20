@@ -14,7 +14,7 @@ volumes:
   pixelfed-storage:
 services:
   app:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9-with-username-fix
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.1
     profiles:
       - prod
     restart: unless-stopped
@@ -22,7 +22,7 @@ services:
     init: true
     volumes:
       - './secrets/pixelfed/.env:/var/www/.env'
-      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     networks:
@@ -35,14 +35,14 @@ services:
       redis:
         condition: service_healthy
   worker:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9-with-username-fix
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.1
     profiles:
       - prod
     env_file: ./secrets/pixelfed/.env
     init: true
     volumes:
       - './secrets/pixelfed/.env:/var/www/.env'
-      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     command: 'gosu www-data php artisan horizon'
@@ -63,7 +63,7 @@ services:
     env_file: ./secrets/pixelfed/.env
     volumes:
       - './secrets/pixelfed/.env:/var/www/.env'
-      - './config/pixelfed/php.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     networks:
@@ -138,7 +138,7 @@ services:
       start_period: 10s
 
   initialize:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9-with-username-fix
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.1
     profiles:
       - setup
     env_file:
@@ -197,14 +197,14 @@ services:
   # THE FOLLOWING SERVICES ARE ONLY NEEDED FOR THE DEV STACK
   # You can ignore the rest of this file when running on prod
   app_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9-with-username-fix
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.1
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
     init: true
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     command:
@@ -228,14 +228,14 @@ services:
         condition: service_completed_successfully
 
   worker_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.11.9-with-username-fix
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.1
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
     init: true
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     command: 'gosu www-data php artisan horizon'
@@ -258,7 +258,7 @@ services:
     env_file: ./secrets/pixelfed/dev.env
     volumes:
       - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php-development.ini:/usr/local/etc/php/php.ini:ro'
+      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
       - pixelfed-storage:/var/www/storage
       - pixelfed-bootstrap:/var/www/bootstrap
     networks:

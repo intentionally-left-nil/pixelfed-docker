@@ -197,20 +197,6 @@ class PixelfedConfig(ServiceConfig):
             secrets=secrets,
         )
 
-        fill_template(
-            template=dirs.templates / "php.ini",
-            dest=dirs.config / "pixelfed" / "php.ini",
-            config=config,
-            secrets=secrets,
-        )
-
-        fill_template(
-            template=dirs.templates / "php-development.ini",
-            dest=dirs.config / "pixelfed" / "php-development.ini",
-            config=config,
-            secrets=secrets,
-        )
-
 
 
 def generate_empty_docker_env_files(dirs: Dirs):
