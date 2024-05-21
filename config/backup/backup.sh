@@ -25,8 +25,8 @@ set -o pipefail
     AWS_SOURCE_BUCKET=$AWS_DEV_SOURCE_BUCKET
   fi
 
-  echo "Backing up s3://$AWS_SOURCE_BUCKET to $dest_root/cloud_files/$now"
-  aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp "s3://$AWS_SOURCE_BUCKET" "$dest_root/cloud_files/$now" --recursive --quiet || exit 1
+  echo "Backing up s3://$AWS_SOURCE_BUCKET/public to $dest_root/cloud_files/$now/public"
+  aws --endpoint-url "$AWS_ENDPOINT_URL" s3 cp "s3://$AWS_SOURCE_BUCKET/public" "$dest_root/cloud_files/$now/public" --recursive --quiet || exit 1
 
 
   echo "Removing old db backups"
