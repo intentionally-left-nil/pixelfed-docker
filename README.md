@@ -91,7 +91,7 @@ The nice thing about this setup is you can test the changes locally to your hear
 1. Update the docker-compose file for all of the pixelfed images to point to the new verison
 1. Re-build the dev environment `docker compose --profile dev build`
 1. Run the worker in docker `docker compose --profile dev run --rm -i -t worker /bin/sh`
-1. Switch to the www-data user: `su www-data`
+1. Switch to the www-data user: `gosu www-data /bin/sh`
 1. Do any upgrade steps you need to, such as upgrading the database: `php artisan migrate --force`
 1. Exit the custom worker
 1. Test the changes `docker compose --profile dev up`
