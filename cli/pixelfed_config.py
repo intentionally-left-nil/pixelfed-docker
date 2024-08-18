@@ -149,7 +149,7 @@ class PixelfedConfig(ServiceConfig):
             default_aws_url = f"{protocol}://{bucket}.{domain}"
 
             aws_url = input(
-                f"What do you want to use for your DEV AWS_URL? Default: {default_aws_url}"
+                f"What do you want to use for your DEV AWS_URL? [Default: {default_aws_url}] "
             )
             if not aws_url.strip():
                 aws_url = default_aws_url
@@ -175,6 +175,52 @@ class PixelfedConfig(ServiceConfig):
         if not secrets.get(["pixelfed", "admin", "password"]):
             secrets.set(["pixelfed", "admin", "password"], generate_password(length=32))
 
+        if not config.get(["pixelfed", "mail", "driver"]):
+            default_mail_driver = "smtp"
+            mail_driver = input(
+                f"What mail driver do you want to use? [Default: {default_mail_driver}] "
+            )
+
+            if not mail_driver.strip():
+                mail_driver = default_mail_driver
+            config.set(["pixelfed", "mail", "driver"], mail_driver)
+
+        if not config.get(["pixelfed", "mail", "host"]):
+            config.set(["pixelfed", "mail", "host"], input("What's the mail host? "))
+
+        if not config.get(["pixelfed", "mail", "port"]):
+            default_mail_port = "587"
+            mail_port = input(f"What's the mail port? [Default: {default_mail_port}] ")
+            if not mail_port.strip():
+                mail_port = default_mail_port
+            config.set(["pixelfed", "mail", "port"], str(int(mail_port)))
+
+        if not secrets.get(["pixelfed", "mail", "username"]):
+            secrets.set(
+                ["pixelfed", "mail", "username"],
+                input("What's the username for your email provider? "),
+            )
+
+        if not secrets.get(["pixelfed", "mail", "password"]):
+            secrets.set(
+                ["pixelfed", "mail", "password"],
+                input("What's the password for your email provider? "),
+            )
+        if not secrets.get(["pixelfed", "mail", "sender"]):
+            secrets.set(
+                ["pixelfed", "mail", "sender"],
+                input("What email address should emails come from? "),
+            )
+
+        if not secrets.get(["pixelfed", "mail", "sender_name"]):
+            default_sender_name = secrets.get(["pixelfed", "mail", "sender"])
+            sender_name = input(
+                f"What's the display name for emails sent by the service [Default: {default_sender_name}]?"
+            )
+            if not sender_name.strip():
+                sender_name = default_sender_name
+            secrets.set(["pixelfed", "mail", "sender_name"], sender_name)
+
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
         fill_template(
@@ -196,7 +242,6 @@ class PixelfedConfig(ServiceConfig):
             config=config,
             secrets=secrets,
         )
-
 
 
 def generate_empty_docker_env_files(dirs: Dirs):
