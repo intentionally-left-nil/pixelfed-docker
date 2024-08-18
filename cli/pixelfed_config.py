@@ -1,3 +1,4 @@
+import copy
 import re
 import subprocess
 from .service_config import ServiceConfig
@@ -221,8 +222,20 @@ class PixelfedConfig(ServiceConfig):
                 sender_name = default_sender_name
             secrets.set(["pixelfed", "mail", "sender_name"], sender_name)
 
+        if not secrets.get(["pixelfed", "custom_variables"]):
+            print("What extra environment variables do you want to set? Use name=value format. Press enter when finished")
+            custom_variables = {}
+            while True:
+                var = input("Name=value: ")
+                if not var.strip():
+                    break
+                name, value = var.split("=", maxsplit=1)
+                custom_variables[name] = value
+            secrets.set(["pixelfed", "custom_variables"], custom_variables)
+
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
+        secrets = transform_custom_variables(secrets)
         fill_template(
             template=dirs.templates / "pixelfed_dev.env",
             dest=dirs.secrets / "pixelfed" / "dev.env",
@@ -243,6 +256,12 @@ class PixelfedConfig(ServiceConfig):
             secrets=secrets,
         )
 
+def transform_custom_variables(config: Config) -> Config:
+    new_config = copy.deepcopy(config)
+    vars = config.get(["pixelfed", "custom_variables"]) or {}
+    combined = "\n".join([f'{key}="{val}"' for key, val in vars.items()])
+    new_config.set(["pixelfed", "custom_variables_as_str"], combined)
+    return new_config
 
 def generate_empty_docker_env_files(dirs: Dirs):
     files = [
