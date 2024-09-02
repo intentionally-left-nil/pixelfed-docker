@@ -6,7 +6,6 @@ After=docker.service
 [Service]
 WorkingDirectory=/home/anil/pixelfed-docker
 ExecStart=/usr/bin/docker compose --profile prod up --build --pull always --remove-orphans
-ExecStartPost=/usr/bin/docker system prune -f
 ExecStop=/usr/bin/docker compose --profile prod down
 TimeoutStartSec=0
 Restart=on-failure
