@@ -14,7 +14,7 @@ volumes:
   pixelfed-storage:
 services:
   app:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4-fix-notifications
     profiles:
       - prod
     restart: unless-stopped
@@ -35,7 +35,7 @@ services:
       redis:
         condition: service_healthy
   worker:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4-fix-notifications
     profiles:
       - prod
     env_file: ./secrets/pixelfed/.env
@@ -138,7 +138,7 @@ services:
       start_period: 10s
 
   initialize:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4-fix-notifications
     profiles:
       - setup
     env_file:
@@ -197,7 +197,7 @@ services:
   # THE FOLLOWING SERVICES ARE ONLY NEEDED FOR THE DEV STACK
   # You can ignore the rest of this file when running on prod
   app_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4-fix-notifications
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
@@ -228,7 +228,7 @@ services:
         condition: service_completed_successfully
 
   worker_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4
+    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.4-fix-notifications
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
