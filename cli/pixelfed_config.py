@@ -221,17 +221,47 @@ class PixelfedConfig(ServiceConfig):
             if not sender_name.strip():
                 sender_name = default_sender_name
             secrets.set(["pixelfed", "mail", "sender_name"], sender_name)
+        
 
-        if not secrets.get(["pixelfed", "custom_variables"]):
-            print("What extra environment variables do you want to set? Use name=value format. Press enter when finished")
-            custom_variables = {}
+        if not secrets.get(["pixelfed", "push", "api_key"]):
+            secrets.set(
+                ["pixelfed", "push", "api_key"],
+                input("What's the push API key? "),
+            )
+
+        if not secrets.get(["pixelfed", "push", "api_key"]):
+            secrets.set(
+                ["pixelfed", "push", "api_key"],
+                input("What's the push API key? "),
+            )
+        
+        custom_variables = secrets.get(["pixelfed", "custom_variables"]) or {}
+        print("Current custom variables:")
+        print("\n".join([f"{key}={val}" for key, val in custom_variables.items()]))
+        print("What extra environment variables do you want to set? Use name=value format. Press enter when finished")
+        while True:
+            var = input("Name=value: ")
+            if not var.strip():
+                break
+            name, value = var.split("=", maxsplit=1)
+            custom_variables[name] = value
+        if custom_variables:
+            print("Current custom variables:")
+            print("\n".join([f"{key}={val}" for key, val in custom_variables.items()]))
+            print("\nWould you like to remove any of these? Type the key name to delete, press enter when finished")
             while True:
-                var = input("Name=value: ")
-                if not var.strip():
+                key = input("Key to remove: ")
+                if not key.strip():
                     break
-                name, value = var.split("=", maxsplit=1)
-                custom_variables[name] = value
-            secrets.set(["pixelfed", "custom_variables"], custom_variables)
+                if key in custom_variables:
+                    custom_variables.pop(key)
+                else:
+                    print(f"WARNING: {key} not found")
+            
+            print("Current custom variables:")
+            print("\n".join([f"{key}={val}" for key, val in custom_variables.items()]))
+
+        secrets.set(["pixelfed", "custom_variables"], custom_variables)
 
     @classmethod
     def update_files(cls, *, config: Config, secrets: Config, dirs: Dirs):
@@ -247,7 +277,6 @@ class PixelfedConfig(ServiceConfig):
             dest=dirs.secrets / "pixelfed" / ".env",
             config=config,
             secrets=secrets,
-            overwrite_if_exists=False,
         )
         fill_template(
             template=dirs.templates / "pixelfed_init.env",

@@ -170,4 +170,4 @@ config/nginx/ssl.conf
 config/nginx/pixelfed
 config/pixelfed/Dockerfile
 
-Makefile
+secrets/Makefile

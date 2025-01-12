@@ -9,7 +9,6 @@ def fill_template(
     dest: Path,
     config: Config,
     secrets: Config,
-    overwrite_if_exists=True,
 ):
     output = ""
     with open(template, mode="r", encoding="utf-8") as f:
@@ -21,10 +20,5 @@ def fill_template(
             output = output.replace(f"${{px.secrets.{key}}}", value)
 
     dest.parent.mkdir(exist_ok=True, parents=True)
-    mode = "w" if overwrite_if_exists else "x"
-    try:
-        with open(dest, mode, encoding="utf-8") as f:
-            f.write(output)
-    except FileExistsError as e:
-        if overwrite_if_exists:
-            raise e
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write(output)

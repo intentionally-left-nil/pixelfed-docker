@@ -20,7 +20,7 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 
 # Prerequisites
 
-- Install Docker, git, and python3 on your computer
+- Install Docker, git, make, and python3 on your computer
 - Create a free [ngrok](https://ngrok.com/) account, and have your [ngrok authtoken](https://dashboard.ngrok.com/get-started/setup) available
   - Ngrok is used only for local development, since we need a proper URL to view pixelfed
   - There are paid versions of ngrok, but this setup works with the free version.
@@ -38,13 +38,11 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 
 1. Download the repository `git clone git@github.com:intentionally-left-nil/pixelfed-docker.git`
 1. `cd pixelfed-docker`
-1. Create a virtual environment for python `python -m venv ./env`
-1. Use the environment `source ./env/bin/activate`
-1. Install the python packages needed for the scripts: `pip install -r requirements.txt`
+1. Run `make setup`
 
 # Generating the initial scaffolding
 
-1. In the python environment (see the [Installation](#installation) steps), execute `./scaffold.py`. This will ask you a bunch of questions. Enter your answers on the command line and hit enter. You'll need the steps from the [Prerequisites](#prerequisites) to complete the config
+1. In the python environment (see the [Installation](#installation) steps), execute `make scaffold`. This will ask you a bunch of questions. Enter your answers on the command line and hit enter. You'll need the steps from the [Prerequisites](#prerequisites) to complete the config
 1. Once you answer all of the necessary questions, the code will generate the scaffolding you need
 1. Run the one-time setup tasks: `docker compose --profile setup run --rm initialize`
 1. Run the dev server: `docker compose --profile dev up`
