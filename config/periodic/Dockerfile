@@ -1,4 +1,4 @@
-FROM ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.5
+FROM ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.5-fix-post-stats
 RUN apt-get update \
   && apt-get install -y --no-install-recommends cron tini
 
