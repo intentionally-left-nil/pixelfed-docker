@@ -21,9 +21,6 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 # Prerequisites
 
 - Install Docker, git, make, and python3 on your computer
-- Create a free [ngrok](https://ngrok.com/) account, and have your [ngrok authtoken](https://dashboard.ngrok.com/get-started/setup) available
-  - Ngrok is used only for local development, since we need a proper URL to view pixelfed
-  - There are paid versions of ngrok, but this setup works with the free version.
 - Create an account with an S3-compatible webhost. I strongly encourage you to not give money to Amazon. If you're not sure, maybe try [backblaze](https://www.backblaze.com)?
   - Create two buckes (pixelfed, and pixelfed-dev) that are configured to allow PUBLIC access to the files. (The names are just references, you can call them whatever makes sense to you and is available)
   - Create a third bucket (pixelfed-backups), but make sure that bucket is private
@@ -47,8 +44,7 @@ The way this works is you need to get some prerequisites ready (get your S3 buck
 1. Run the one-time setup tasks: `docker compose --profile setup run --rm initialize`
 1. Run the dev server: `docker compose --profile dev up`
 1. Wait a minute for everything to build and start
-1. Navigate to https://localhost:8000
-   - Note that the ngrok URL will change every time. But you can always go to this localhost address to find it
+1. Navigate to http://localhost:8080
 1. Enter in the admin username & password from earlier
 1. Do whatever you need to in order to test the changes locally
 
@@ -88,13 +84,13 @@ The nice thing about this setup is you can test the changes locally to your hear
 
 1. Update the docker-compose file for all of the pixelfed images to point to the new verison
 1. Re-build the dev environment `docker compose --profile dev build`
-1. Run the worker in docker `docker compose --profile dev run --rm -i -t worker /bin/sh`
-1. Switch to the www-data user: `gosu www-data /bin/sh`
+1. Run a shell in the dev app container: `docker compose --profile dev exec app_dev bash`
 1. Do any upgrade steps you need to, such as upgrading the database: `php artisan migrate --force`
-1. Exit the custom worker
+   - This normally happens automatically on container start via the `AUTORUN_LARAVEL_MIGRATION` env var, but you can also run it manually
+1. Exit the shell
 1. Test the changes `docker compose --profile dev up`
 1. Copy the files over to your prod webserver.
-1. Run the same steps on prod, except use `--profile prod`
+1. Run the same steps on prod, except use `--profile prod` (and `docker compose --profile prod exec app bash`)
 
 # Auto Backups
 
@@ -118,7 +114,9 @@ It's very similar to the clone step, except you might not need to delete redis (
 
 # How it works
 
-![Display of how the docker containers work together. There's nginx, the app, and a worker. These are supported by the filesystem, and S3](./arch.png 'Architecture diagram')
+![Display of how the docker containers work together. There's the app, a worker, and a scheduler. These are supported by the filesystem, and S3](./arch.png 'Architecture diagram')
+
+Note: this diagram predates the move to the [pixelfed](https://github.com/intentionally-left-nil/pixelfed) all-in-one image (app+webserver in one container, no separate nginx) — the app/worker/scheduler split is still accurate, but there's no standalone nginx container anymore.
 
 Scaffold.py works in two stages. First, it loads the existing configuration from [config/config.toml](./config/config.toml) and [secrets/config.toml](./secrets/config.toml). If any settings are missing, it prompts the user, then saves them to the appropriate file. (The reason there are two config files is that the latter one contains stuff you don't want others to see. Passwords, etc. You should never upload that folder to github). The scaffold.py can also generate some of the config for you - For example, it runs pixelfed to generate the oauth keys and other app secrets.
 
@@ -126,7 +124,7 @@ Then, the scaffold.py script takes the files in the [templates](./templates/) fo
 
 # Running Locally
 
-If you try to run pixelfed and visit it from http://localhost, it just won't work. Pixelfed needs a domain to work properly. Ngrok is great, because we can have a domain name, but it's powered by our local computer. There's only one catch. If you don't pay for ngrok, then your domain name changes every time. As a workaround, the repo contains the [app_dynamic_domain](./config/app_dynamic_domain/app.py) docker image which updates the pixelfed env files to use the new domain automatically during startup. Lastly, we need to refresh the pixelfed config to pick up the new environment. There's a [pending PR](https://github.com/pixelfed/pixelfed/pull/4255) to handle this better, but in the mean time this is why the docker-compose file specifies the run command for the worker
+The dev stack runs `app_dev` directly on `http://localhost:8080` (no ngrok/tunnel needed, and no separate nginx container - the pixelfed image serves HTTP itself). Because `SSL_MODE=off` and `APP_URL`/`APP_DOMAIN`/`SESSION_DOMAIN` are all pinned to `localhost` in [templates/pixelfed_dev.env](./templates/pixelfed_dev.env), you don't need a real public domain for local development. This does mean ActivityPub/federation-dependent features aren't exercised locally (dev already sets `ACTIVITY_PUB=false`).
 
 # Backups
 

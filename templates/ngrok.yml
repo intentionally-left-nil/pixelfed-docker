@@ -1,8 +1,0 @@
-version: 2
-authtoken: ${px.secrets.ngrok.auth_token}
-web_addr: 0.0.0.0:4040
-log_level: debug
-tunnels:
-  web:
-    proto: http
-    addr: pixelfed:80

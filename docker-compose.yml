@@ -1,5 +1,5 @@
+
 networks:
-  www:
   db:
   cache:
   app:
@@ -10,42 +10,66 @@ networks:
 volumes:
   postgres-16:
   redis:
-  pixelfed-bootstrap:
   pixelfed-storage:
 services:
   app:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.6
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - prod
     restart: unless-stopped
     env_file: ./secrets/pixelfed/.env
     init: true
+    environment:
+      SSL_MODE: 'off'
+      PHP_POST_MAX_SIZE: '500M'
+      PHP_UPLOAD_MAX_FILE_SIZE: '500M'
+      PHP_OPCACHE_ENABLE: '1'
+      AUTORUN_ENABLED: 'true'
+      AUTORUN_LARAVEL_MIGRATION: 'true'
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'true'
+      AUTORUN_LARAVEL_STORAGE_LINK: 'true'
+      AUTORUN_LARAVEL_EVENT_CACHE: 'true'
+      AUTORUN_LARAVEL_ROUTE_CACHE: 'true'
+      AUTORUN_LARAVEL_VIEW_CACHE: 'true'
+      AUTORUN_LARAVEL_CONFIG_CACHE: 'true'
     volumes:
-      - './secrets/pixelfed/.env:/var/www/.env'
-      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
-      - pixelfed-storage:/var/www/storage
-      - pixelfed-bootstrap:/var/www/bootstrap
+      - './secrets/pixelfed/.env:/var/www/html/.env'
+      - pixelfed-storage:/var/www/html/storage
     networks:
       app:
       db:
       cache:
+      ingress:
+        aliases:
+          - pixelfed
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
   worker:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.6
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - prod
+    restart: unless-stopped
     env_file: ./secrets/pixelfed/.env
     init: true
+    command: ['php', 'artisan', 'horizon']
+    environment:
+      AUTORUN_ENABLED: 'false'
+      AUTORUN_LARAVEL_MIGRATION: 'false'
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'false'
+      AUTORUN_LARAVEL_STORAGE_LINK: 'true'
+      AUTORUN_LARAVEL_EVENT_CACHE: 'false'
+      AUTORUN_LARAVEL_ROUTE_CACHE: 'false'
+      AUTORUN_LARAVEL_VIEW_CACHE: 'false'
+      AUTORUN_LARAVEL_CONFIG_CACHE: 'true'
+      PHP_POST_MAX_SIZE: '500M'
+      PHP_UPLOAD_MAX_FILE_SIZE: '500M'
+      PHP_OPCACHE_ENABLE: '1'
     volumes:
-      - './secrets/pixelfed/.env:/var/www/.env'
-      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
-      - pixelfed-storage:/var/www/storage
-      - pixelfed-bootstrap:/var/www/bootstrap
-    command: 'gosu www-data php artisan horizon'
+      - './secrets/pixelfed/.env:/var/www/html/.env'
+      - pixelfed-storage:/var/www/html/storage
     networks:
       app:
       db:
@@ -55,17 +79,36 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'php', 'artisan', 'horizon:status']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
   periodic:
-    build:
-      context: './config/periodic'
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - prod
+    restart: unless-stopped
     env_file: ./secrets/pixelfed/.env
+    command: ['php', 'artisan', 'schedule:work']
+    stop_signal: SIGTERM
+    environment:
+      AUTORUN_ENABLED: 'false'
+      AUTORUN_LARAVEL_MIGRATION: 'false'
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'false'
+      AUTORUN_LARAVEL_STORAGE_LINK: 'true'
+      AUTORUN_LARAVEL_EVENT_CACHE: 'false'
+      AUTORUN_LARAVEL_ROUTE_CACHE: 'false'
+      AUTORUN_LARAVEL_VIEW_CACHE: 'false'
+      AUTORUN_LARAVEL_CONFIG_CACHE: 'true'
+      PHP_POST_MAX_SIZE: '500M'
+      PHP_UPLOAD_MAX_FILE_SIZE: '500M'
+      PHP_OPCACHE_ENABLE: '1'
     volumes:
-      - './secrets/pixelfed/.env:/var/www/.env'
-      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
-      - pixelfed-storage:/var/www/storage
-      - pixelfed-bootstrap:/var/www/bootstrap
+      - './secrets/pixelfed/.env:/var/www/html/.env'
+      - pixelfed-storage:/var/www/html/storage
     networks:
       app:
       db:
@@ -75,47 +118,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'healthcheck-schedule']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
-  nginx:
-    build:
-      context: './config/nginx'
-    profiles:
-      - prod
-    restart: unless-stopped
-    volumes:
-      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - pixelfed-storage:/var/www/storage:ro
-    networks:
-      ingress:
-        aliases:
-          - pixelfed
-      www:
-        aliases:
-          - pixelfed
-      app:
-        aliases:
-          - pixelfed
-    depends_on:
-      - app
-
-  nginx_dev:
-    build:
-      context: './config/nginx'
-    profiles:
-      - dev
-    restart: unless-stopped
-    volumes:
-      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - pixelfed-storage:/var/www/storage:ro
-    networks:
-      www:
-        aliases:
-          - pixelfed
-      app:
-        aliases:
-          - pixelfed
-    depends_on:
-      - app_dev
   db:
     image: postgres:16-alpine
     profiles:
@@ -138,14 +147,15 @@ services:
       start_period: 10s
 
   initialize:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.6
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - setup
     env_file:
       - ./secrets/pixelfed/.env
       - ./secrets/pixelfed/init.env
     volumes:
-      - './secrets/pixelfed/.env:/var/www/.env'
+      - './secrets/pixelfed/.env:/var/www/html/.env'
+    entrypoint: ['']
     networks:
       - db
       - cache
@@ -158,7 +168,7 @@ services:
       [
         '/bin/sh',
         '-c',
-        'php artisan migrate --force && php artisan import:cities && php artisan instance:actor && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan passport:client --personal --name=pixelfed -n && php artisan horizon:install && php artisan horizon:publish && (php artisan user:create --name="$$ADMIN_DISPLAY_NAME" --email="$$ADMIN_EMAIL" --username="$$ADMIN_USER_NAME" --password="$$ADMIN_PASSWORD" --is_admin=1 --confirm_email=1 --no-interaction || true)',
+        'php artisan migrate --force && php artisan import:cities && php artisan instance:actor && php artisan passport:client --personal --name=pixelfed -n && php artisan horizon:install && php artisan horizon:publish && (php artisan user:create --name="$$ADMIN_DISPLAY_NAME" --email="$$ADMIN_EMAIL" --username="$$ADMIN_USER_NAME" --password="$$ADMIN_PASSWORD" --is_admin=1 --confirm_email=1 --no-interaction || true)',
       ]
 
   redis:
@@ -197,22 +207,29 @@ services:
   # THE FOLLOWING SERVICES ARE ONLY NEEDED FOR THE DEV STACK
   # You can ignore the rest of this file when running on prod
   app_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.6
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
     init: true
+    environment:
+      SSL_MODE: 'off'
+      PHP_POST_MAX_SIZE: '500M'
+      PHP_UPLOAD_MAX_FILE_SIZE: '500M'
+      PHP_OPCACHE_ENABLE: '1'
+      AUTORUN_ENABLED: 'true'
+      AUTORUN_LARAVEL_MIGRATION: 'true'
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'true'
+      AUTORUN_LARAVEL_STORAGE_LINK: 'true'
+      AUTORUN_LARAVEL_EVENT_CACHE: 'true'
+      AUTORUN_LARAVEL_ROUTE_CACHE: 'true'
+      AUTORUN_LARAVEL_VIEW_CACHE: 'true'
+      AUTORUN_LARAVEL_CONFIG_CACHE: 'true'
     volumes:
-      - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
-      - pixelfed-storage:/var/www/storage
-      - pixelfed-bootstrap:/var/www/bootstrap
-    command:
-      [
-        '/bin/sh',
-        '-c',
-        'cp -r storage.skel/* storage/ && chown -R www-data:www-data storage/ bootstrap/ && . /var/www/.env && php artisan config:cache && php artisan storage:link && php artisan horizon:publish && php artisan route:cache && php artisan view:cache && php-fpm',
-      ]
+      - './secrets/pixelfed/dev.env:/var/www/html/.env'
+      - pixelfed-storage:/var/www/html/storage
+    ports:
+      - '8080:8080'
     networks:
       app:
         aliases:
@@ -224,21 +241,29 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      app_dynamic_domain:
-        condition: service_completed_successfully
 
   worker_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed-fpm:0.12.6
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
     init: true
+    command: ['php', 'artisan', 'horizon']
+    environment:
+      AUTORUN_ENABLED: 'false'
+      AUTORUN_LARAVEL_MIGRATION: 'false'
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'false'
+      AUTORUN_LARAVEL_STORAGE_LINK: 'true'
+      AUTORUN_LARAVEL_EVENT_CACHE: 'false'
+      AUTORUN_LARAVEL_ROUTE_CACHE: 'false'
+      AUTORUN_LARAVEL_VIEW_CACHE: 'false'
+      AUTORUN_LARAVEL_CONFIG_CACHE: 'true'
+      PHP_POST_MAX_SIZE: '500M'
+      PHP_UPLOAD_MAX_FILE_SIZE: '500M'
+      PHP_OPCACHE_ENABLE: '1'
     volumes:
-      - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
-      - pixelfed-storage:/var/www/storage
-      - pixelfed-bootstrap:/var/www/bootstrap
-    command: 'gosu www-data php artisan horizon'
+      - './secrets/pixelfed/dev.env:/var/www/html/.env'
+      - pixelfed-storage:/var/www/html/storage
     networks:
       app:
       db:
@@ -248,19 +273,35 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      app_dynamic_domain:
-        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD', 'php', 'artisan', 'horizon:status']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
   periodic_dev:
-    build:
-      context: './config/periodic'
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
+    command: ['php', 'artisan', 'schedule:work']
+    stop_signal: SIGTERM
+    environment:
+      AUTORUN_ENABLED: 'false'
+      AUTORUN_LARAVEL_MIGRATION: 'false'
+      AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'false'
+      AUTORUN_LARAVEL_STORAGE_LINK: 'true'
+      AUTORUN_LARAVEL_EVENT_CACHE: 'false'
+      AUTORUN_LARAVEL_ROUTE_CACHE: 'false'
+      AUTORUN_LARAVEL_VIEW_CACHE: 'false'
+      AUTORUN_LARAVEL_CONFIG_CACHE: 'true'
+      PHP_POST_MAX_SIZE: '500M'
+      PHP_UPLOAD_MAX_FILE_SIZE: '500M'
+      PHP_OPCACHE_ENABLE: '1'
     volumes:
-      - './secrets/pixelfed/dev.env:/var/www/.env'
-      - './config/pixelfed/php-extra.ini:/usr/local/etc/php/conf.d/php-extra.ini:ro'
-      - pixelfed-storage:/var/www/storage
-      - pixelfed-bootstrap:/var/www/bootstrap
+      - './secrets/pixelfed/dev.env:/var/www/html/.env'
+      - pixelfed-storage:/var/www/html/storage
     networks:
       app:
       db:
@@ -270,8 +311,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      app_dynamic_domain:
-        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD', 'healthcheck-schedule']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
   backup_dev:
     build:
       context: './config/backup'
@@ -285,48 +331,3 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  ngrok:
-    image: ngrok/ngrok:3-alpine
-    profiles:
-      - dev
-    environment:
-      - NGROK_CONFIG=/etc/ngrok.yml
-    volumes:
-      - ./secrets/ngrok/ngrok.yml:/etc/ngrok.yml:ro
-    ports:
-      - '4040:4040'
-    networks:
-      - www
-    healthcheck:
-      test:
-        ['CMD-SHELL', 'wget -O - localhost:4040/api/tunnels | grep public_url']
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-
-  app_dynamic_domain:
-    image: python:alpine
-    profiles:
-      - dev
-    volumes:
-      - ./config/app_dynamic_domain/app.py:/app.py
-      - ./secrets/pixelfed/dev.env:/dev.env
-    command: ['python', '/app.py']
-    networks:
-      - www
-    depends_on:
-      ngrok:
-        condition: 'service_healthy'
-
-  redirect_dev:
-    build:
-      context: './config/redirect_dev'
-    profiles:
-      - dev
-    volumes:
-      - ./config/redirect_dev/app.py:/app.py
-    networks:
-      - www
-    ports:
-      - '8000:8000'

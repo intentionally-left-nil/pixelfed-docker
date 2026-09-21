@@ -27,7 +27,7 @@ class PixelfedConfig(ServiceConfig):
                     "--no-deps",
                     "--entrypoint",
                     "/bin/sh",
-                    "pixelfed",
+                    "app",
                     "-c",
                     "php artisan key:generate --show --no-ansi",
                 ],
@@ -50,9 +50,9 @@ class PixelfedConfig(ServiceConfig):
                     "--no-deps",
                     "--entrypoint",
                     "/bin/sh",
-                    "pixelfed",
+                    "app",
                     "-c",
-                    "php artisan passport:keys -q --force && cat /var/www/storage/oauth-private.key && echo '' && cat /var/www/storage/oauth-public.key && rm /var/www/storage/oauth-public.key && rm /var/www/storage/oauth-private.key",
+                    "php artisan passport:keys -q --force && cat /var/www/html/storage/oauth-private.key && echo '' && cat /var/www/html/storage/oauth-public.key && rm /var/www/html/storage/oauth-public.key && rm /var/www/html/storage/oauth-private.key",
                 ],
                 capture_output=True,
                 timeout=10,
@@ -294,7 +294,6 @@ def transform_custom_variables(config: Config) -> Config:
 
 def generate_empty_docker_env_files(dirs: Dirs):
     files = [
-        dirs.secrets / "nginx" / ".env",
         dirs.secrets / "pixelfed" / "dev.env",
         dirs.secrets / "pixelfed" / "init.env",
         dirs.secrets / "db" / ".env",
