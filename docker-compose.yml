@@ -13,7 +13,7 @@ volumes:
   pixelfed-storage:
 services:
   app:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - prod
     restart: unless-stopped
@@ -48,7 +48,7 @@ services:
       redis:
         condition: service_healthy
   worker:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - prod
     restart: unless-stopped
@@ -87,7 +87,7 @@ services:
       start_period: 10s
 
   periodic:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - prod
     restart: unless-stopped
@@ -147,7 +147,7 @@ services:
       start_period: 10s
 
   initialize:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - setup
     env_file:
@@ -207,7 +207,7 @@ services:
   # THE FOLLOWING SERVICES ARE ONLY NEEDED FOR THE DEV STACK
   # You can ignore the rest of this file when running on prod
   app_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
@@ -243,7 +243,7 @@ services:
         condition: service_healthy
 
   worker_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
@@ -281,7 +281,7 @@ services:
       start_period: 10s
 
   periodic_dev:
-    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.1
+    image: ghcr.io/intentionally-left-nil/pixelfed:0.14.3
     profiles:
       - dev
     env_file: ./secrets/pixelfed/dev.env
